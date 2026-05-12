@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: burguer-restaurant
+
+server:
+  port: 8080
+
+app:
+  name: Burguer Restaurant
+  description: Backend inicial para operacao em tablets de restaurante
