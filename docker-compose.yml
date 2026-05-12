@@ -1,17 +1,15 @@
-version: '3.8'
-
 services:
   mysql:
     image: mysql:8.0
-    container_name: burguer_db
+    container_name: ${MYSQL_CONTAINER_NAME:-burguer_db}
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: burguer_restaurant
-      MYSQL_USER: burguer_user
-      MYSQL_PASSWORD: burguer_password
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-burguer_restaurant}
+      MYSQL_USER: ${MYSQL_USER:-burguer_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-burguer_password}
     ports:
-      - "3306:3306"
+      - "${MYSQL_PORT:-3306}:3306"
     volumes:
       - mysql_data:/var/lib/mysql
 

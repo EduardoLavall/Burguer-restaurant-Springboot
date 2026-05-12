@@ -7,10 +7,10 @@ public class Produto {
     private final Long id;
     private final String nome;
     private final String descricao;
-    private final BigDecimal preco;
+    private BigDecimal preco;
     private final CategoriaProduto categoria;
-    private final boolean disponibilidade;
-    private final String imagem;
+    private boolean disponibilidade;
+    private String imagem;
 
     public Produto(Long id, String nome, String descricao, BigDecimal preco, CategoriaProduto categoria,
             boolean disponibilidade, String imagem) {
@@ -49,5 +49,17 @@ public class Produto {
 
     public String getImagem() {
         return imagem;
+    }
+
+    public void alterarPreco(BigDecimal novoPreco) {
+        this.preco = novoPreco;
+    }
+
+    public void remover() {
+        this.disponibilidade = false;
+    }
+
+    public void atualizarImagem(String novaImagem) {
+        this.imagem = novaImagem;
     }
 }

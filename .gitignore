@@ -1,0 +1,12 @@
+target/
+
+.idea/
+.vscode/
+
+*.iml
+*.log
+AGENTS.md
+TODO.md
+Aula 09 - Pratica MenuStream.md
+Aula 09.1 - Pratica MenuStream.md
+/docs
