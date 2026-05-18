@@ -134,6 +134,59 @@ docker compose up -d
 .\mvnw.cmd spring-boot:run
 ```
 
+## Quick Start — subir e rodar (um comando)
+
+Se você quer iniciar o ambiente de desenvolvimento rapidamente, rode o seguinte comando na raiz do projeto (Windows PowerShell):
+
+```powershell
+# Sobe o MySQL via Docker e inicia a aplicação (usa .env)
+.\run-with-env.ps1 -StartDb
+```
+
+Em Unix/WSL/macOS, use:
+
+```bash
+chmod +x run-with-env.sh
+./run-with-env.sh --start-db
+```
+
+Observação: os scripts carregam automaticamente o arquivo `.env`. Para forçar uma porta diferente, passe `-Port 9090` (PowerShell) ou `--port 9090` (bash).
+
+## One-liners úteis
+
+```powershell
+# Iniciar DB + rodar app (PowerShell)
+.\run-with-env.ps1 -StartDb
+
+# Rodar na porta 9090 sem subir DB
+.\run-with-env.ps1 -Port 9090 -NoBuild
+```
+
+Em WSL / macOS / Linux:
+
+```bash
+chmod +x run-with-env.sh
+./run-with-env.sh --port 9090
+```
+
+## Scripts de ajuda
+
+Existem dois scripts úteis na raiz do projeto:
+
+- `run-with-env.ps1` (PowerShell - Windows)
+  - Carrega `.env`, opcionalmente sobe o DB (`-StartDb`), executa build (a menos que `-NoBuild`) e roda a aplicação.
+  - Exemplos:
+    - `.\run-with-env.ps1 -StartDb` — sobe DB e roda a app.
+    - `.\run-with-env.ps1 -Port 9090 -NoBuild` — roda na porta 9090 sem rebuild.
+
+- `run-with-env.sh` (bash/WSL/macOS/Linux)
+  - Equivalente ao script PowerShell.
+  - Exemplos:
+    - `./run-with-env.sh --start-db`
+    - `./run-with-env.sh --port 9090 --no-build`
+
+Os scripts garantem que `SERVER_PORT` e outras variáveis do `.env` estejam disponíveis para o processo do Maven/Spring Boot.
+
 ## Fallback para erro de permissao no Maven
 
 Se o Maven tentar escrever em `C:\Users\...\ .m2` e der erro de permissao, use os comandos abaixo:
@@ -220,16 +273,30 @@ Use o fallback:
 Se o MySQL nao subir, veja se ja existe outro banco usando essa porta.
 
 ### Porta `8080` ocupada
+### Porta `8080` ocupada (passos rápidos)
 
-Se a API nao iniciar, voce pode:
-
-- liberar a porta `8080`
-- ou alterar a porta em `src/main/resources/application.yml`
-
-Para descobrir quem esta usando a porta:
+1. Descobrir quem está usando a porta:
 
 ```powershell
 netstat -ano | findstr :8080
+```
+
+2. Identificar o processo (substitua `<PID>`):
+
+```powershell
+Get-Process -Id <PID>
+```
+
+3. Finalizar o processo (se for seguro):
+
+```powershell
+Stop-Process -Id <PID> -Force
+```
+
+4. Alternativa: rodar a aplicação em outra porta sem encerrar processos:
+
+```powershell
+.\run-with-env.ps1 -Port 9090
 ```
 
 ### Java diferente da versao do projeto

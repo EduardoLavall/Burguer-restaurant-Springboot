@@ -50,6 +50,25 @@ if ($env:MVNW_VERBOSE -eq "true") {
   $VerbosePreference = "Continue"
 }
 
+# Load environment variables from .env (if present) so running mvnw.cmd inherits them
+$envFile = Join-Path $scriptDir '.env'
+if (Test-Path $envFile) {
+  try {
+    Get-Content $envFile | ForEach-Object {
+      if ($_ -and -not ($_ -match '^[\s#]')) {
+        $parts = $_ -split '=', 2
+        if ($parts.Length -eq 2) {
+          $name = $parts[0].Trim()
+          $value = $parts[1].Trim()
+          if ($name) { Set-Item -Path "env:$name" -Value $value }
+        }
+      }
+    }
+  } catch {
+    Write-Verbose "Could not load .env: $_"
+  }
+}
+
 # calculate distributionUrl, requires .mvn/wrapper/maven-wrapper.properties
 $distributionUrl = (Get-Content -Raw "$scriptDir/.mvn/wrapper/maven-wrapper.properties" | ConvertFrom-StringData).distributionUrl
 if (!$distributionUrl) {

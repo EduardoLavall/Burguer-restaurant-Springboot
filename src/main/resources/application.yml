@@ -12,7 +12,7 @@ spring:
     baseline-on-migrate: true
 
 server:
-  port: 8080
+  port: ${SERVER_PORT:8080}
 
 app:
   name: Burguer Restaurant
