@@ -1,10 +1,16 @@
-import { useState, type FormEvent } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 
 import type { ProdutoDados } from "../interfaces/ProdutoDados";
 import { useProdutoDadosMutate } from "../hooks/useProdutoDadosMutate";
+import { useProdutoAtualizar } from "../hooks/useProdutoAtualizar";
 import "./formularioProduto.css";
 
-export function FormularioProduto() {
+type FormularioProdutoProps = {
+  onSuccess?: () => void;
+  initial?: ProdutoDados;
+};
+
+export function FormularioProduto({ onSuccess, initial }: FormularioProdutoProps) {
   const [nome, setNome] = useState("");
   const [descricao, setDescricao] = useState("");
   const [preco, setPreco] = useState("");
@@ -12,7 +18,23 @@ export function FormularioProduto() {
   const [imagem, setImagem] = useState("");
   const [disponibilidade, setDisponibilidade] = useState(true);
 
-  const { mutate, isPending } = useProdutoDadosMutate();
+  const { mutate: criar, isPending: criando } = useProdutoDadosMutate();
+  const { mutate: atualizar, isPending: atualizando } = useProdutoAtualizar();
+
+  useEffect(() => {
+    if (!initial) return;
+    setNome(initial.nome ?? "");
+    setDescricao(initial.descricao ?? "");
+    setPreco(String(initial.preco ?? ""));
+    setCategoria(initial.categoria ?? "comida");
+    setImagem(initial.imagem ?? "");
+    setDisponibilidade(initial.disponibilidade ?? true);
+  }, [initial]);
+
+  // suporte a edição: se `initial` for passado, preencher o formulário
+  // e usar o endpoint de atualização
+  // Nota: tipo ProdutoDados opcional para evitar dependência circular em imports
+
 
   function limparFormulario() {
     setNome("");
@@ -35,17 +57,25 @@ export function FormularioProduto() {
       disponibilidade,
     };
 
-    mutate(produto, {
-      onSuccess: limparFormulario,
-    });
+    if (initial && initial.id) {
+      atualizar({ id: initial.id, produto }, { onSuccess: () => { limparFormulario(); if (onSuccess) onSuccess(); } });
+    } else {
+      criar(produto, { onSuccess: () => { limparFormulario(); if (onSuccess) onSuccess(); } });
+    }
   }
 
   return (
     <section className="formulario-painel">
       <div className="formulario-painel__cabecalho">
         <div>
-          <h2>Novo produto</h2>
-          <p>Cadastro via <strong>POST /api/produtos</strong>.</p>
+          <h2>{initial && initial.id ? "Editar produto" : "Novo produto"}</h2>
+          <p>
+            {initial && initial.id ? (
+              <>Edição via <strong>PATCH /api/produtos/{initial?.id}</strong>.</>
+            ) : (
+              <>Cadastro via <strong>POST /api/produtos</strong>.</>
+            )}
+          </p>
         </div>
       </div>
 
@@ -100,8 +130,8 @@ export function FormularioProduto() {
           Produto disponível
         </label>
 
-        <button type="submit" disabled={isPending}>
-          {isPending ? "Salvando..." : "Salvar produto"}
+        <button type="submit" disabled={criando || atualizando}>
+          {atualizando ? "Atualizando..." : criando ? "Salvando..." : initial && initial.id ? "Salvar alterações" : "Salvar produto"}
         </button>
       </form>
     </section>

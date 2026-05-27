@@ -14,5 +14,7 @@ public interface ProdutoService {
 
     ProdutoResposta alterarPreco(Long id, ProdutoPrecoRequisicao requisicao);
 
+    ProdutoResposta atualizar(Long id, ProdutoRequisicao requisicao);
+
     void remover(Long id);
 }

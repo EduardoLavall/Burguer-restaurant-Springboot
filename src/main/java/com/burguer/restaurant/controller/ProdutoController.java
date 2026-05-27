@@ -46,6 +46,12 @@ public class ProdutoController {
         return ResponseEntity.ok(produtoService.alterarPreco(id, requisicao));
     }
 
+    @PatchMapping("/{id}")
+    public ResponseEntity<ProdutoResposta> atualizar(@PathVariable Long id,
+            @Valid @RequestBody ProdutoRequisicao requisicao) {
+        return ResponseEntity.ok(produtoService.atualizar(id, requisicao));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> remover(@PathVariable Long id) {
         produtoService.remover(id);

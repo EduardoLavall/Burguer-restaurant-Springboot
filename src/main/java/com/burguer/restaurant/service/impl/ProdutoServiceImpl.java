@@ -51,6 +51,21 @@ public class ProdutoServiceImpl implements ProdutoService {
     }
 
     @Override
+    public ProdutoResposta atualizar(Long id, ProdutoRequisicao requisicao) {
+        // cria um novo objeto Produto com os valores atualizados e mesmo id
+        Produto produto = new Produto(
+                id,
+                requisicao.nome(),
+                requisicao.descricao(),
+                requisicao.preco(),
+                requisicao.categoria(),
+                requisicao.disponibilidade(),
+                requisicao.imagem());
+
+        return paraResposta(produtoRepository.salvar(produto));
+    }
+
+    @Override
     public void remover(Long id) {
         Produto produto = buscarProdutoPorId(id);
         produto.remover();

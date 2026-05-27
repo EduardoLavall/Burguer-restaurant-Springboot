@@ -84,3 +84,37 @@
 .cartao-produto.is-indisponivel {
   opacity: 0.72;
 }
+
+.cartao-produto__acoes {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.cartao-produto__checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+}
+
+.cartao-produto__botoes {
+  display: flex;
+  gap: 6px;
+}
+
+.btn-icon {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-danger {
+  background: rgba(255,50,50,0.08);
+  border-color: rgba(255,50,50,0.2);
+  color: #ffdddd;
+}
+
