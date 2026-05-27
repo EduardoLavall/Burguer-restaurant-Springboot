@@ -1,4 +1,5 @@
 import { CartaoProduto } from "./componentes/CartaoProduto";
+import { FormularioProduto } from "./componentes/FormularioProduto";
 import { useProdutoDados } from "./hooks/useProdutoDados";
 import "./App.css";
 
@@ -21,6 +22,8 @@ function App() {
           Atualizar catálogo
         </button>
       </section>
+
+      <FormularioProduto />
 
       <section className="painel">
         <div className="painel__topo">

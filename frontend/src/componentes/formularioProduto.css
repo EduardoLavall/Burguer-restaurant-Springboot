@@ -1,0 +1,104 @@
+.formulario-painel {
+  background: rgba(18, 14, 12, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 28px;
+  box-shadow: 0 28px 60px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(16px);
+  padding: 1.3rem;
+}
+
+.formulario-painel__cabecalho {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 1rem;
+  margin-bottom: 1.1rem;
+}
+
+.formulario-painel__cabecalho h2 {
+  margin: 0 0 0.35rem;
+  font-size: 1.35rem;
+}
+
+.formulario-painel__cabecalho p {
+  margin: 0;
+  color: rgba(248, 240, 231, 0.82);
+  line-height: 1.6;
+}
+
+.formulario {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.formulario input,
+.formulario textarea,
+.formulario select {
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #f8f0e7;
+  padding: 0.95rem 1rem;
+  outline: none;
+  transition: border-color 160ms ease, background 160ms ease;
+}
+
+.formulario input::placeholder,
+.formulario textarea::placeholder {
+  color: rgba(248, 240, 231, 0.5);
+}
+
+.formulario input:focus,
+.formulario textarea:focus,
+.formulario select:focus {
+  border-color: rgba(246, 171, 85, 0.72);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.formulario textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.formulario__linha {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem;
+}
+
+.formulario__checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: rgba(248, 240, 231, 0.9);
+}
+
+.formulario__checkbox input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: #f7ae5a;
+}
+
+.formulario button {
+  border: 0;
+  border-radius: 18px;
+  padding: 0.95rem 1rem;
+  background: linear-gradient(135deg, #f7ae5a, #cc6f2b);
+  color: #1f130a;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 12px 26px rgba(204, 111, 43, 0.26);
+}
+
+.formulario button:disabled {
+  opacity: 0.76;
+  cursor: wait;
+}
+
+@media (max-width: 720px) {
+  .formulario__linha {
+    grid-template-columns: 1fr;
+  }
+}
