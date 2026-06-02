@@ -1,0 +1,14 @@
+spring:
+  datasource:
+    url: jdbc:sqlite:./data/restaurant.db
+    driver-class-name: org.sqlite.JDBC
+  flyway:
+    enabled: true
+    locations: classpath:db/migration-sqlite
+    baseline-on-migrate: true
+
+server:
+  port: 8080
+
+app:
+  name: Burguer Restaurant (SQLite)

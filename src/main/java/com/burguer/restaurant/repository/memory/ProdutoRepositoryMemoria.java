@@ -10,12 +10,14 @@ import java.util.concurrent.atomic.AtomicLong;
 import jakarta.annotation.PostConstruct;
 
 import org.springframework.stereotype.Repository;
+import org.springframework.context.annotation.Profile;
 
 import com.burguer.restaurant.dominio.produto.CategoriaProduto;
 import com.burguer.restaurant.dominio.produto.Produto;
 import com.burguer.restaurant.repository.ProdutoRepository;
 
 @Repository
+@Profile("!sqlite")
 public class ProdutoRepositoryMemoria implements ProdutoRepository {
 
     private final ConcurrentHashMap<Long, Produto> armazenamento = new ConcurrentHashMap<>();

@@ -7,11 +7,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.springframework.stereotype.Repository;
+import org.springframework.context.annotation.Profile;
 
 import com.burguer.restaurant.dominio.cliente.Cliente;
 import com.burguer.restaurant.repository.ClienteRepository;
 
 @Repository
+@Profile("!sqlite")
 public class ClienteRepositoryMemoria implements ClienteRepository {
 
     private final ConcurrentHashMap<Long, Cliente> armazenamento = new ConcurrentHashMap<>();
