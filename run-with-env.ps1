@@ -1,24 +1,21 @@
 <#
 run-with-env.ps1
 Usage:
-  .\run-with-env.ps1 [-StartDb] [-Port <port>] [-NoBuild]
+  .\run-with-env.ps1 [-Port <port>] [-NoBuild]
 
 Description:
-  - Carrega variaveis do arquivo .env (se existir) para o ambiente da sessão.
-  - Opcionalmente sobe o banco via `docker compose up -d` se passado `-StartDb`.
+  - Carrega variaveis do arquivo .env (se existir) para o ambiente da sessao.
+  - Usa `SQLite` como banco local oficial do projeto.
+  - Sobe o frontend Vite automaticamente em paralelo.
   - Executa `mvnw.cmd` para baixar dependencias/build (a menos que -NoBuild seja passado).
   - Executa `mvnw.cmd spring-boot:run` para iniciar a aplicacao.
 
 Examples:
-  # Start DB, build (skip tests) and run on default port (from .env or 8080)
-  .\run-with-env.ps1 -StartDb
-
-  # Run on porta 9090 without starting DB and without building
+  .\run-with-env.ps1
   .\run-with-env.ps1 -Port 9090 -NoBuild
 #>
 
 param(
-    [switch]$StartDb,
     [int]$Port = $null,
     [switch]$NoBuild
 )
@@ -42,7 +39,6 @@ function Load-EnvFile {
             $name = $parts[0].Trim()
             $value = $parts[1].Trim()
             if ($name) {
-                # expand simple ~ to HOME
                 if ($value -like '~*') { $value = $value -replace '^~', $env:USERPROFILE }
                 Set-Item -Path "Env:$name" -Value $value
             }
@@ -50,37 +46,60 @@ function Load-EnvFile {
     }
 }
 
-# Load .env if present
+function Start-Frontend {
+    param([string]$frontendDir)
+
+    if (-not (Test-Path (Join-Path $frontendDir 'package.json'))) {
+        Write-Warning "Frontend nao encontrado em $frontendDir. Pulando subida do Vite."
+        return
+    }
+
+    $npmCmd = Get-Command npm.cmd -ErrorAction SilentlyContinue
+    if (-not $npmCmd) {
+        Write-Warning "npm.cmd nao encontrado no PATH. Pulando subida do frontend."
+        return
+    }
+
+    $viteLogDir = Join-Path $scriptDir 'tmp'
+    if (-not (Test-Path $viteLogDir)) {
+        New-Item -ItemType Directory -Path $viteLogDir | Out-Null
+    }
+
+    $stdoutLog = Join-Path $viteLogDir 'frontend-vite.out.log'
+    $stderrLog = Join-Path $viteLogDir 'frontend-vite.err.log'
+
+    $processoFrontend = Start-Process `
+        -FilePath $npmCmd.Source `
+        -ArgumentList 'run', 'dev' `
+        -WorkingDirectory $frontendDir `
+        -WindowStyle Hidden `
+        -RedirectStandardOutput $stdoutLog `
+        -RedirectStandardError $stderrLog `
+        -PassThru
+
+    Write-Host "Frontend iniciado em segundo plano com PID $($processoFrontend.Id)."
+    Write-Host "Logs do frontend: $stdoutLog"
+}
+
 $envFile = Join-Path $scriptDir '.env'
 Load-EnvFile -path $envFile
 
-# Override port if passed
 if ($Port) {
     Set-Item -Path "Env:SERVER_PORT" -Value $Port
     Write-Host "SERVER_PORT set to $Port"
 }
 
-# Optionally start DB via docker compose
-if ($StartDb) {
-    if (Get-Command docker -ErrorAction SilentlyContinue) {
-        Write-Host "Starting docker compose services..."
-        & docker compose up -d
-    } else {
-        Write-Warning "Docker not found in PATH. Skipping DB startup."
-    }
-}
+$frontendDir = Join-Path $scriptDir 'frontend'
+Start-Frontend -frontendDir $frontendDir
 
-# Ensure mvnw exists
 $mvnw = Join-Path $scriptDir 'mvnw.cmd'
 if (-not (Test-Path $mvnw)) { throw "mvnw.cmd not found in $scriptDir" }
 
-# Build (download dependencies) unless NoBuild
 if (-not $NoBuild) {
     Write-Host "Running mvnw clean package (dependencies will be downloaded). This may take a while..."
     & $mvnw clean package -DskipTests
 }
 
-# Run application
 Write-Host "Starting application with mvnw spring-boot:run"
 & $mvnw spring-boot:run
 

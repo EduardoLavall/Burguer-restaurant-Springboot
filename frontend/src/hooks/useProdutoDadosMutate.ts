@@ -6,7 +6,7 @@ import type { ProdutoDados } from "../interfaces/ProdutoDados";
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8080";
 
 async function salvarProduto(produto: ProdutoDados) {
-  const response = await axios.post(`${API_URL}/api/produtos`, produto);
+  const response = await axios.post(`${API_URL}/api/admin/produtos`, produto);
   return response.data;
 }
 
@@ -17,7 +17,10 @@ export function useProdutoDadosMutate() {
     mutationFn: salvarProduto,
     onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: ["produto-dados"],
+        queryKey: ["admin", "produtos"],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ["cardapio"],
       });
     },
   });

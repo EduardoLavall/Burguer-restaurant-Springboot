@@ -4,16 +4,19 @@ import java.time.OffsetDateTime;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.burguer.restaurant.dominio.pedido.ItemPedido;
 import com.burguer.restaurant.dominio.pedido.Pedido;
+import com.burguer.restaurant.dominio.pedido.StatusPedido;
 import com.burguer.restaurant.dominio.produto.Produto;
 import com.burguer.restaurant.dto.pedido.ItemPedidoRequisicao;
 import com.burguer.restaurant.dto.pedido.ItemPedidoResposta;
-import com.burguer.restaurant.dto.pedido.PedidoRequisicao;
+import com.burguer.restaurant.dto.pedido.PedidoCheckoutRequisicao;
 import com.burguer.restaurant.dto.pedido.PedidoResposta;
+import com.burguer.restaurant.dto.pedido.PedidoStatusRequisicao;
+import com.burguer.restaurant.exception.RegraNegocioException;
 import com.burguer.restaurant.exception.RecursoNaoEncontradoException;
-import com.burguer.restaurant.repository.ClienteRepository;
 import com.burguer.restaurant.repository.PedidoRepository;
 import com.burguer.restaurant.repository.ProdutoRepository;
 import com.burguer.restaurant.service.PedidoService;
@@ -23,56 +26,109 @@ public class PedidoServiceImpl implements PedidoService {
 
     private final PedidoRepository pedidoRepository;
     private final ProdutoRepository produtoRepository;
-    private final ClienteRepository clienteRepository;
 
-    public PedidoServiceImpl(
-            PedidoRepository pedidoRepository,
-            ProdutoRepository produtoRepository,
-            ClienteRepository clienteRepository) {
+    public PedidoServiceImpl(PedidoRepository pedidoRepository, ProdutoRepository produtoRepository) {
         this.pedidoRepository = pedidoRepository;
         this.produtoRepository = produtoRepository;
-        this.clienteRepository = clienteRepository;
     }
 
     @Override
-    public List<PedidoResposta> listarTodos() {
-        return pedidoRepository.listarTodos()
-                .stream()
+    public List<PedidoResposta> listarTodos(StatusPedido status) {
+        List<Pedido> pedidos = status == null
+                ? pedidoRepository.listarTodos()
+                : pedidoRepository.listarPorStatus(status);
+
+        return pedidos.stream()
                 .map(this::paraResposta)
                 .toList();
     }
 
     @Override
-    public PedidoResposta criar(PedidoRequisicao requisicao) {
-        clienteRepository.buscarPorId(requisicao.clienteId())
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Cliente nao encontrado para o id " + requisicao.clienteId()));
+    @Transactional
+    public PedidoResposta criarCheckout(PedidoCheckoutRequisicao requisicao) {
+        List<ItemPedido> itensPedido = montarItensPedido(requisicao);
+        Pedido pedido = criarPedidoInicial(requisicao, itensPedido);
+        return paraResposta(pedidoRepository.salvar(pedido));
+    }
 
-        List<ItemPedido> itensPedido = requisicao.itensPedido()
+    @Override
+    public PedidoResposta buscarPorId(Long id) {
+        return paraResposta(buscarPedido(id));
+    }
+
+    @Override
+    @Transactional
+    public PedidoResposta atualizarStatus(Long id, PedidoStatusRequisicao requisicao) {
+        Pedido pedido = buscarPedido(id).comStatus(requisicao.status(), OffsetDateTime.now());
+        return paraResposta(pedidoRepository.salvar(pedido));
+    }
+
+    @Override
+    @Transactional
+    public void remover(Long id) {
+        Pedido pedido = buscarPedido(id);
+
+        // A exclusao fica restrita a pedidos encerrados para o painel nao apagar pedidos em andamento.
+        if (pedido.getStatus() != StatusPedido.cancelado && pedido.getStatus() != StatusPedido.entregue) {
+            throw new RegraNegocioException("So e permitido excluir pedidos cancelados ou entregues.");
+        }
+
+        pedidoRepository.removerPorId(id);
+    }
+
+    private Pedido buscarPedido(Long id) {
+        return pedidoRepository.buscarPorId(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Pedido nao encontrado para o id " + id));
+    }
+
+    private List<ItemPedido> montarItensPedido(PedidoCheckoutRequisicao requisicao) {
+        return requisicao.itens()
                 .stream()
                 .map(this::paraItemPedido)
                 .toList();
+    }
 
-        // O pedido nasce com valor calculado pelo dominio para manter a regra em um ponto central.
-        Pedido pedido = new Pedido(
+    private Pedido criarPedidoInicial(PedidoCheckoutRequisicao requisicao, List<ItemPedido> itensPedido) {
+        OffsetDateTime agora = OffsetDateTime.now();
+
+        return new Pedido(
                 null,
-                requisicao.clienteId(),
+                requisicao.nomeCliente().trim(),
+                requisicao.numeroMesa(),
                 itensPedido,
-                requisicao.status(),
-                OffsetDateTime.now(),
-                null);
-
-        return paraResposta(pedidoRepository.salvar(pedido));
+                StatusPedido.recebido,
+                agora,
+                agora);
     }
 
     private ItemPedido paraItemPedido(ItemPedidoRequisicao requisicao) {
         Produto produto = produtoRepository.buscarPorId(requisicao.produtoId())
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Produto nao encontrado para o id " + requisicao.produtoId()));
 
+        // Produto inativo nao pode entrar no pedido mesmo que alguma tela antiga ainda esteja aberta.
+        if (!produto.isDisponibilidade()) {
+            throw new RegraNegocioException("Produto indisponivel para pedido: " + produto.getNome());
+        }
+
         return new ItemPedido(produto, requisicao.quantidade());
     }
 
     private PedidoResposta paraResposta(Pedido pedido) {
-        List<ItemPedidoResposta> itensPedido = pedido.getItensPedido()
+        return new PedidoResposta(
+                pedido.getId(),
+                pedido.getNomeCliente(),
+                pedido.getNumeroMesa(),
+                montarItensResposta(pedido),
+                pedido.getSubtotal(),
+                pedido.getTaxaServico(),
+                pedido.getValorTotal(),
+                pedido.getStatus(),
+                pedido.getDataCriacao(),
+                pedido.getDataAtualizacao());
+    }
+
+    private List<ItemPedidoResposta> montarItensResposta(Pedido pedido) {
+        return pedido.getItensPedido()
                 .stream()
                 .map(item -> new ItemPedidoResposta(
                         item.getProduto().getId(),
@@ -81,16 +137,5 @@ public class PedidoServiceImpl implements PedidoService {
                         item.getProduto().getPreco(),
                         item.getSubtotal()))
                 .toList();
-
-        return new PedidoResposta(
-                pedido.getId(),
-                pedido.getClienteId(),
-                itensPedido,
-                pedido.getSubtotal(),
-                pedido.getTaxaServico(),
-                pedido.getValorTotal(),
-                pedido.getStatus(),
-                pedido.getDataPedido(),
-                pedido.getDataEntrega());
     }
 }

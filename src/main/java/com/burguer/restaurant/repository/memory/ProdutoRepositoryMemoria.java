@@ -17,7 +17,7 @@ import com.burguer.restaurant.dominio.produto.Produto;
 import com.burguer.restaurant.repository.ProdutoRepository;
 
 @Repository
-@Profile("!sqlite")
+@Profile("memory")
 public class ProdutoRepositoryMemoria implements ProdutoRepository {
 
     private final ConcurrentHashMap<Long, Produto> armazenamento = new ConcurrentHashMap<>();

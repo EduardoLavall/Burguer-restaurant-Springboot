@@ -2,13 +2,11 @@ spring:
   application:
     name: burguer-restaurant
   datasource:
-    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:burguer_restaurant}
-    username: ${DB_USERNAME:burguer_user}
-    password: ${DB_PASSWORD:burguer_password}
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:sqlite:./data/restaurant.db
+    driver-class-name: org.sqlite.JDBC
   flyway:
     enabled: true
-    locations: classpath:db/migration
+    locations: classpath:db/migration-sqlite
     baseline-on-migrate: true
 
 server:

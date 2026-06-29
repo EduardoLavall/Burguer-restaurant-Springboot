@@ -2,12 +2,16 @@ package com.burguer.restaurant.service.impl;
 
 import java.util.List;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import com.burguer.restaurant.dominio.produto.Produto;
+import com.burguer.restaurant.dto.cardapio.CardapioProdutoResposta;
 import com.burguer.restaurant.dto.produto.ProdutoPrecoRequisicao;
 import com.burguer.restaurant.dto.produto.ProdutoRequisicao;
 import com.burguer.restaurant.dto.produto.ProdutoResposta;
+import com.burguer.restaurant.dto.produto.ProdutoStatusRequisicao;
+import com.burguer.restaurant.exception.RegraNegocioException;
 import com.burguer.restaurant.exception.RecursoNaoEncontradoException;
 import com.burguer.restaurant.repository.ProdutoRepository;
 import com.burguer.restaurant.service.ProdutoService;
@@ -30,16 +34,17 @@ public class ProdutoServiceImpl implements ProdutoService {
     }
 
     @Override
-    public ProdutoResposta criar(ProdutoRequisicao requisicao) {
-        Produto produto = new Produto(
-                null,
-                requisicao.nome(),
-                requisicao.descricao(),
-                requisicao.preco(),
-                requisicao.categoria(),
-                requisicao.disponibilidade(),
-                requisicao.imagem());
+    public List<CardapioProdutoResposta> listarCardapio() {
+        return produtoRepository.listarTodos()
+                .stream()
+                .filter(Produto::isDisponibilidade)
+                .map(this::paraCardapioResposta)
+                .toList();
+    }
 
+    @Override
+    public ProdutoResposta criar(ProdutoRequisicao requisicao) {
+        Produto produto = criarProduto(null, requisicao);
         return paraResposta(produtoRepository.salvar(produto));
     }
 
@@ -52,8 +57,43 @@ public class ProdutoServiceImpl implements ProdutoService {
 
     @Override
     public ProdutoResposta atualizar(Long id, ProdutoRequisicao requisicao) {
-        // cria um novo objeto Produto com os valores atualizados e mesmo id
-        Produto produto = new Produto(
+        buscarProdutoPorId(id);
+        Produto produto = criarProduto(id, requisicao);
+        return paraResposta(produtoRepository.salvar(produto));
+    }
+
+    @Override
+    public ProdutoResposta atualizarStatus(Long id, ProdutoStatusRequisicao requisicao) {
+        Produto produto = buscarProdutoPorId(id);
+        Produto produtoAtualizado = new Produto(
+                produto.getId(),
+                produto.getNome(),
+                produto.getDescricao(),
+                produto.getPreco(),
+                produto.getCategoria(),
+                requisicao.disponibilidade(),
+                produto.getImagem());
+        return paraResposta(produtoRepository.salvar(produtoAtualizado));
+    }
+
+    @Override
+    public void remover(Long id) {
+        buscarProdutoPorId(id);
+
+        try {
+            produtoRepository.removerPorId(id);
+        } catch (DataIntegrityViolationException excecao) {
+            throw new RegraNegocioException("Nao e permitido excluir produto que ja faz parte de pedidos.");
+        }
+    }
+
+    private Produto buscarProdutoPorId(Long id) {
+        return produtoRepository.buscarPorId(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Produto nao encontrado para o id " + id));
+    }
+
+    private Produto criarProduto(Long id, ProdutoRequisicao requisicao) {
+        return new Produto(
                 id,
                 requisicao.nome(),
                 requisicao.descricao(),
@@ -61,20 +101,16 @@ public class ProdutoServiceImpl implements ProdutoService {
                 requisicao.categoria(),
                 requisicao.disponibilidade(),
                 requisicao.imagem());
-
-        return paraResposta(produtoRepository.salvar(produto));
     }
 
-    @Override
-    public void remover(Long id) {
-        Produto produto = buscarProdutoPorId(id);
-        produto.remover();
-        produtoRepository.salvar(produto);
-    }
-
-    private Produto buscarProdutoPorId(Long id) {
-        return produtoRepository.buscarPorId(id)
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Produto nao encontrado para o id " + id));
+    private CardapioProdutoResposta paraCardapioResposta(Produto produto) {
+        return new CardapioProdutoResposta(
+                produto.getId(),
+                produto.getNome(),
+                produto.getDescricao(),
+                produto.getPreco(),
+                produto.getCategoria(),
+                produto.getImagem());
     }
 
     private ProdutoResposta paraResposta(Produto produto) {

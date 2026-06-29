@@ -6,13 +6,13 @@ import type { ProdutoDados } from "../interfaces/ProdutoDados";
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8080";
 
 async function buscarProdutos(): Promise<ProdutoDados[]> {
-  const response = await axios.get<ProdutoDados[]>(`${API_URL}/api/produtos`);
+  const response = await axios.get<ProdutoDados[]>(`${API_URL}/api/admin/produtos`);
   return response.data;
 }
 
 export function useProdutoDados() {
   return useQuery({
-    queryKey: ["produto-dados"],
+    queryKey: ["admin", "produtos"],
     queryFn: buscarProdutos,
     retry: 2,
   });

@@ -10,28 +10,34 @@ public class Pedido {
     private static final BigDecimal TAXA_SERVICO = new BigDecimal("0.10");
 
     private final Long id;
-    private final Long clienteId;
+    private final String nomeCliente;
+    private final Integer numeroMesa;
     private final List<ItemPedido> itensPedido;
     private final StatusPedido status;
-    private final OffsetDateTime dataPedido;
-    private final OffsetDateTime dataEntrega;
+    private final OffsetDateTime dataCriacao;
+    private final OffsetDateTime dataAtualizacao;
 
-    public Pedido(Long id, Long clienteId, List<ItemPedido> itensPedido, StatusPedido status,
-            OffsetDateTime dataPedido, OffsetDateTime dataEntrega) {
+    public Pedido(Long id, String nomeCliente, Integer numeroMesa, List<ItemPedido> itensPedido, StatusPedido status,
+            OffsetDateTime dataCriacao, OffsetDateTime dataAtualizacao) {
         this.id = id;
-        this.clienteId = clienteId;
+        this.nomeCliente = nomeCliente;
+        this.numeroMesa = numeroMesa;
         this.itensPedido = List.copyOf(itensPedido);
         this.status = status;
-        this.dataPedido = dataPedido;
-        this.dataEntrega = dataEntrega;
+        this.dataCriacao = dataCriacao;
+        this.dataAtualizacao = dataAtualizacao;
     }
 
     public Long getId() {
         return id;
     }
 
-    public Long getClienteId() {
-        return clienteId;
+    public String getNomeCliente() {
+        return nomeCliente;
+    }
+
+    public Integer getNumeroMesa() {
+        return numeroMesa;
     }
 
     public List<ItemPedido> getItensPedido() {
@@ -42,14 +48,15 @@ public class Pedido {
         return status;
     }
 
-    public OffsetDateTime getDataPedido() {
-        return dataPedido;
+    public OffsetDateTime getDataCriacao() {
+        return dataCriacao;
     }
 
-    public OffsetDateTime getDataEntrega() {
-        return dataEntrega;
+    public OffsetDateTime getDataAtualizacao() {
+        return dataAtualizacao;
     }
 
+    // O subtotal sempre vem da soma dos itens para evitar valor divergente salvo de fora.
     public BigDecimal getSubtotal() {
         return itensPedido.stream()
                 .map(ItemPedido::getSubtotal)
@@ -57,8 +64,8 @@ public class Pedido {
                 .setScale(2, RoundingMode.HALF_UP);
     }
 
+    // A v1 do trabalho usa taxa fixa de 10 por cento para todos os pedidos.
     public BigDecimal getTaxaServico() {
-        // A taxa do atendimento fica centralizada no dominio para evitar calculos diferentes na API.
         return getSubtotal()
                 .multiply(TAXA_SERVICO)
                 .setScale(2, RoundingMode.HALF_UP);
@@ -68,5 +75,17 @@ public class Pedido {
         return getSubtotal()
                 .add(getTaxaServico())
                 .setScale(2, RoundingMode.HALF_UP);
+    }
+
+    // Ao mudar o status, mantemos o restante do pedido igual e atualizamos so a data da operacao.
+    public Pedido comStatus(StatusPedido novoStatus, OffsetDateTime novaDataAtualizacao) {
+        return new Pedido(
+                id,
+                nomeCliente,
+                numeroMesa,
+                itensPedido,
+                novoStatus,
+                dataCriacao,
+                novaDataAtualizacao);
     }
 }

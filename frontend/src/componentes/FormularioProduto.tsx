@@ -1,8 +1,8 @@
-import { useState, useEffect, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 
-import type { ProdutoDados } from "../interfaces/ProdutoDados";
-import { useProdutoDadosMutate } from "../hooks/useProdutoDadosMutate";
 import { useProdutoAtualizar } from "../hooks/useProdutoAtualizar";
+import { useProdutoDadosMutate } from "../hooks/useProdutoDadosMutate";
+import type { ProdutoDados } from "../interfaces/ProdutoDados";
 import "./formularioProduto.css";
 
 type FormularioProdutoProps = {
@@ -31,11 +31,6 @@ export function FormularioProduto({ onSuccess, initial }: FormularioProdutoProps
     setDisponibilidade(initial.disponibilidade ?? true);
   }, [initial]);
 
-  // suporte a edição: se `initial` for passado, preencher o formulário
-  // e usar o endpoint de atualização
-  // Nota: tipo ProdutoDados opcional para evitar dependência circular em imports
-
-
   function limparFormulario() {
     setNome("");
     setDescricao("");
@@ -57,23 +52,41 @@ export function FormularioProduto({ onSuccess, initial }: FormularioProdutoProps
       disponibilidade,
     };
 
-    if (initial && initial.id) {
-      atualizar({ id: initial.id, produto }, { onSuccess: () => { limparFormulario(); if (onSuccess) onSuccess(); } });
-    } else {
-      criar(produto, { onSuccess: () => { limparFormulario(); if (onSuccess) onSuccess(); } });
+    if (initial?.id) {
+      atualizar(
+        { id: initial.id, produto },
+        {
+          onSuccess: () => {
+            limparFormulario();
+            onSuccess?.();
+          },
+        },
+      );
+      return;
     }
+
+    criar(produto, {
+      onSuccess: () => {
+        limparFormulario();
+        onSuccess?.();
+      },
+    });
   }
 
   return (
     <section className="formulario-painel">
       <div className="formulario-painel__cabecalho">
         <div>
-          <h2>{initial && initial.id ? "Editar produto" : "Novo produto"}</h2>
+          <h2>{initial?.id ? "Editar produto" : "Novo produto"}</h2>
           <p>
-            {initial && initial.id ? (
-              <>Edição via <strong>PATCH /api/produtos/{initial?.id}</strong>.</>
+            {initial?.id ? (
+              <>
+                Edicao via <strong>PATCH /api/admin/produtos/{initial.id}</strong>.
+              </>
             ) : (
-              <>Cadastro via <strong>POST /api/produtos</strong>.</>
+              <>
+                Cadastro via <strong>POST /api/admin/produtos</strong>.
+              </>
             )}
           </p>
         </div>
@@ -89,7 +102,7 @@ export function FormularioProduto({ onSuccess, initial }: FormularioProdutoProps
         />
 
         <textarea
-          placeholder="Descrição"
+          placeholder="Descricao"
           value={descricao}
           onChange={(event) => setDescricao(event.target.value)}
           required
@@ -98,7 +111,7 @@ export function FormularioProduto({ onSuccess, initial }: FormularioProdutoProps
         <div className="formulario__linha">
           <input
             type="number"
-            placeholder="Preço"
+            placeholder="Preco"
             min="0"
             step="0.01"
             value={preco}
@@ -127,11 +140,17 @@ export function FormularioProduto({ onSuccess, initial }: FormularioProdutoProps
             checked={disponibilidade}
             onChange={(event) => setDisponibilidade(event.target.checked)}
           />
-          Produto disponível
+          Produto ativo
         </label>
 
         <button type="submit" disabled={criando || atualizando}>
-          {atualizando ? "Atualizando..." : criando ? "Salvando..." : initial && initial.id ? "Salvar alterações" : "Salvar produto"}
+          {atualizando
+            ? "Atualizando..."
+            : criando
+              ? "Salvando..."
+              : initial?.id
+                ? "Salvar alteracoes"
+                : "Salvar produto"}
         </button>
       </form>
     </section>

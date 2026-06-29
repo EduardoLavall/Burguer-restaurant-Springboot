@@ -25,6 +25,17 @@ public class GlobalExceptionHandler {
                         Map.of()));
     }
 
+    @ExceptionHandler(RegraNegocioException.class)
+    public ResponseEntity<RespostaErroApi> tratarRegraNegocio(RegraNegocioException excecao) {
+        return ResponseEntity.badRequest().body(
+                new RespostaErroApi(
+                        OffsetDateTime.now(),
+                        HttpStatus.BAD_REQUEST.value(),
+                        HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                        excecao.getMessage(),
+                        Map.of()));
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<RespostaErroApi> tratarValidacao(MethodArgumentNotValidException excecao) {
         Map<String, String> errosCampos = excecao.getBindingResult()

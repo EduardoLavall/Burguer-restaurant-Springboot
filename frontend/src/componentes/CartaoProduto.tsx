@@ -1,9 +1,11 @@
+import axios from "axios";
 import { useState } from "react";
+
 import type { ProdutoDados } from "../interfaces/ProdutoDados";
 import { Modal } from "./Modal";
 import { FormularioProduto } from "./FormularioProduto";
 import { useProdutoRemover } from "../hooks/useProdutoRemover";
-import { useProdutoAtualizar } from "../hooks/useProdutoAtualizar";
+import { useProdutoStatusAtualizar } from "../hooks/useProdutoStatusAtualizar";
 import "./cartaoProduto.css";
 
 interface CartaoProdutoProps {
@@ -19,14 +21,19 @@ function formatarPreco(valor: number) {
 
 export function CartaoProduto({ produto }: CartaoProdutoProps) {
   const imagem = produto.imagem?.trim() ? produto.imagem : "/placeholder-produto.svg";
-  const statusDisponivel = produto.disponibilidade ? "Disponível" : "Indisponível";
+  const statusDisponivel = produto.disponibilidade ? "Ativo" : "Inativo";
 
   const [confirmAberto, setConfirmAberto] = useState(false);
   const [visualizarAberto, setVisualizarAberto] = useState(false);
   const [editarAberto, setEditarAberto] = useState(false);
 
   const remover = useProdutoRemover();
-  const atualizar = useProdutoAtualizar();
+  const atualizarStatus = useProdutoStatusAtualizar();
+
+  function abrirConfirmacaoRemover() {
+    remover.reset();
+    setConfirmAberto(true);
+  }
 
   function aoConfirmarRemover() {
     if (produto.id == null) return;
@@ -35,8 +42,7 @@ export function CartaoProduto({ produto }: CartaoProdutoProps) {
 
   function alternarDisponibilidade(checked: boolean) {
     if (produto.id == null) return;
-    const atualizado: ProdutoDados = { ...produto, disponibilidade: checked };
-    atualizar.mutate({ id: produto.id, produto: atualizado });
+    atualizarStatus.mutate({ id: produto.id, disponibilidade: checked });
   }
 
   return (
@@ -61,20 +67,20 @@ export function CartaoProduto({ produto }: CartaoProdutoProps) {
               checked={produto.disponibilidade}
               onChange={(e) => alternarDisponibilidade(e.target.checked)}
             />
-            Disponível
+            Visivel no cliente
           </label>
 
           <div className="cartao-produto__botoes">
-            <button className="btn-icon" title="Visualizar" onClick={() => setVisualizarAberto(true)}>
-              👁️
+            <button className="btn-icon" title="Visualizar" type="button" onClick={() => setVisualizarAberto(true)}>
+              VER
             </button>
 
-            <button className="btn-icon" title="Editar" onClick={() => setEditarAberto(true)}>
-              ✏️
+            <button className="btn-icon" title="Editar" type="button" onClick={() => setEditarAberto(true)}>
+              EDIT
             </button>
 
-            <button className="btn-icon btn-danger" title="Excluir" onClick={() => setConfirmAberto(true)}>
-              ×
+            <button className="btn-icon btn-danger" title="Excluir" type="button" onClick={abrirConfirmacaoRemover}>
+              EXCLUIR
             </button>
           </div>
         </div>
@@ -84,21 +90,59 @@ export function CartaoProduto({ produto }: CartaoProdutoProps) {
         </div>
       </div>
 
-      <Modal isOpen={confirmAberto} onClose={() => setConfirmAberto(false)} title="Confirmar exclusão">
-        <p>Tem certeza que deseja marcar este produto como indisponível?</p>
-        <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-          <button onClick={aoConfirmarRemover} className="btn-danger">Confirmar</button>
-          <button onClick={() => setConfirmAberto(false)}>Cancelar</button>
+      <Modal
+        isOpen={confirmAberto}
+        onClose={() => {
+          remover.reset();
+          setConfirmAberto(false);
+        }}
+        title="Excluir produto"
+      >
+        <p>Este produto sera excluido do painel e do cardapio do cliente.</p>
+
+        {remover.isError ? (
+          <p className="cartao-produto__erro">
+            {axios.isAxiosError(remover.error) && remover.error.response?.data?.message
+              ? remover.error.response.data.message
+              : "Nao foi possivel excluir este produto agora."}
+          </p>
+        ) : null}
+
+        <div className="janela-acoes">
+          <button
+            onClick={aoConfirmarRemover}
+            className="janela-acao janela-acao--danger"
+            type="button"
+            disabled={remover.isPending}
+          >
+            Confirmar
+          </button>
+          <button
+            onClick={() => {
+              remover.reset();
+              setConfirmAberto(false);
+            }}
+            className="janela-acao"
+            type="button"
+          >
+            Cancelar
+          </button>
         </div>
       </Modal>
 
       <Modal isOpen={visualizarAberto} onClose={() => setVisualizarAberto(false)} title="Detalhes do produto">
-        <div>
-          <img src={imagem} alt={`Imagem de ${produto.nome}`} style={{ maxWidth: "100%", marginBottom: 12 }} />
+        <div className="janela-visualizacao">
+          <img src={imagem} alt={`Imagem de ${produto.nome}`} />
           <h3>{produto.nome}</h3>
-          <p><strong>Categoria:</strong> {produto.categoria}</p>
-          <p><strong>Preço:</strong> {formatarPreco(produto.preco)}</p>
-          <p><strong>Disponibilidade:</strong> {produto.disponibilidade ? "Disponível" : "Indisponível"}</p>
+          <p>
+            <strong>Categoria:</strong> {produto.categoria}
+          </p>
+          <p>
+            <strong>Preco:</strong> {formatarPreco(produto.preco)}
+          </p>
+          <p>
+            <strong>Status:</strong> {produto.disponibilidade ? "Ativo" : "Inativo"}
+          </p>
           <p>{produto.descricao}</p>
         </div>
       </Modal>

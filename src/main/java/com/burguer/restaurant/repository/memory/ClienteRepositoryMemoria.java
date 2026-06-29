@@ -13,7 +13,7 @@ import com.burguer.restaurant.dominio.cliente.Cliente;
 import com.burguer.restaurant.repository.ClienteRepository;
 
 @Repository
-@Profile("!sqlite")
+@Profile("memory")
 public class ClienteRepositoryMemoria implements ClienteRepository {
 
     private final ConcurrentHashMap<Long, Cliente> armazenamento = new ConcurrentHashMap<>();

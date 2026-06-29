@@ -8,12 +8,13 @@ import com.burguer.restaurant.dominio.pedido.StatusPedido;
 
 public record PedidoResposta(
         Long id,
-        Long clienteId,
-        List<ItemPedidoResposta> itensPedido,
+        String nomeCliente,
+        Integer numeroMesa,
+        List<ItemPedidoResposta> itens,
         BigDecimal subtotal,
         BigDecimal taxaServico,
         BigDecimal valorTotal,
         StatusPedido status,
-        OffsetDateTime dataPedido,
-        OffsetDateTime dataEntrega) {
+        OffsetDateTime dataCriacao,
+        OffsetDateTime dataAtualizacao) {
 }

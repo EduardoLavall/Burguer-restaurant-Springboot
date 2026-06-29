@@ -15,7 +15,7 @@ async function atualizarProduto(id: number, produto: ProdutoDados) {
     imagem: produto.imagem,
   };
 
-  const response = await axios.patch(`${API_URL}/api/produtos/${id}`, payload);
+  const response = await axios.patch(`${API_URL}/api/admin/produtos/${id}`, payload);
   return response.data;
 }
 
@@ -25,7 +25,8 @@ export function useProdutoAtualizar() {
   return useMutation({
     mutationFn: ({ id, produto }: { id: number; produto: ProdutoDados }) => atualizarProduto(id, produto),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["produto-dados"] });
+      await queryClient.invalidateQueries({ queryKey: ["admin", "produtos"] });
+      await queryClient.invalidateQueries({ queryKey: ["cardapio"] });
     },
   });
 }
