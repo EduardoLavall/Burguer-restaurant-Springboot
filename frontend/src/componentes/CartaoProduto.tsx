@@ -2,10 +2,9 @@ import axios from "axios";
 import { useState } from "react";
 
 import type { ProdutoDados } from "../interfaces/ProdutoDados";
+import { useProdutoRemover, useProdutoStatusAtualizar } from "../hooks/produtoHooks";
 import { Modal } from "./Modal";
 import { FormularioProduto } from "./FormularioProduto";
-import { useProdutoRemover } from "../hooks/useProdutoRemover";
-import { useProdutoStatusAtualizar } from "../hooks/useProdutoStatusAtualizar";
 import "./cartaoProduto.css";
 
 interface CartaoProdutoProps {

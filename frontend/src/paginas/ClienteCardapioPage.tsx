@@ -1,10 +1,11 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 
-import { useCardapioDados } from "../hooks/useCardapioDados";
-import { usePedidoCheckout } from "../hooks/usePedidoCheckout";
+import { useCardapioDados } from "../hooks/produtoHooks";
+import { usePedidoCheckout } from "../hooks/pedidoHooks";
 import type { CardapioProdutoDados } from "../interfaces/CardapioProdutoDados";
 import type { PedidoCheckoutDados } from "../interfaces/PedidoCheckoutDados";
+import { formatarCategoria, formatarMoeda } from "../utils/formatadores";
 
 type ItemCarrinho = CardapioProdutoDados & {
   quantidade: number;
@@ -14,17 +15,6 @@ type CategoriaAgrupada = {
   categoria: string;
   itens: CardapioProdutoDados[];
 };
-
-function formatarMoeda(valor: number) {
-  return valor.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
-}
-
-function normalizarCategoria(categoria: string) {
-  return categoria.replace("_", " ");
-}
 
 function agruparCardapioPorCategoria(data?: CardapioProdutoDados[]): CategoriaAgrupada[] {
   if (!data) return [];
@@ -141,10 +131,6 @@ export function ClienteCardapioPage() {
         <div>
           <span className="painel-banner__tag">Autoatendimento</span>
           <h1>Monte seu pedido no tablet</h1>
-          <p>
-            Escolha os itens do cardapio, informe nome e mesa e envie o pedido direto para o
-            painel do restaurante.
-          </p>
         </div>
 
         <div className="painel-banner__acoes">
@@ -160,9 +146,6 @@ export function ClienteCardapioPage() {
           <div className="painel__topo">
             <div>
               <h2>Cardapio ativo</h2>
-              <p>
-                Exibindo somente produtos ativos de <strong>GET /api/cardapio</strong>.
-              </p>
             </div>
           </div>
 
@@ -183,7 +166,7 @@ export function ClienteCardapioPage() {
             {cardapioAgrupado.map((grupo) => (
               <section key={grupo.categoria} className="catalogo-cliente__grupo">
                 <div className="catalogo-cliente__cabecalho">
-                  <h3>{normalizarCategoria(grupo.categoria)}</h3>
+                  <h3>{formatarCategoria(grupo.categoria)}</h3>
                   <span>{grupo.itens.length} itens</span>
                 </div>
 
@@ -198,7 +181,7 @@ export function ClienteCardapioPage() {
 
                         <div className="produto-cliente__conteudo">
                           <span className="produto-cliente__categoria">
-                            {normalizarCategoria(produto.categoria)}
+                            {formatarCategoria(produto.categoria)}
                           </span>
                           <h4>{produto.nome}</h4>
                           <p>{produto.descricao}</p>
@@ -223,7 +206,6 @@ export function ClienteCardapioPage() {
           <div className="painel__topo">
             <div>
               <h2>Seu pedido</h2>
-              <p>Identificacao por mesa + nome para o atendimento presencial.</p>
             </div>
           </div>
 

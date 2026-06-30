@@ -1,10 +1,9 @@
 import { useMemo, useState } from "react";
 
-import { useAdminPedidos } from "../hooks/useAdminPedidos";
-import { usePedidoRemover } from "../hooks/usePedidoRemover";
-import { usePedidoStatusAtualizar } from "../hooks/usePedidoStatusAtualizar";
-import type { PedidoDados } from "../interfaces/PedidoDados";
+import { useAdminPedidos, usePedidoRemover, usePedidoStatusAtualizar } from "../hooks/pedidoHooks";
 import type { StatusPedido } from "../interfaces/StatusPedido";
+import { formatarData, formatarMoeda, formatarStatus } from "../utils/formatadores";
+import { calcularResumoPedidos, proximoStatus, tituloAcaoStatus } from "../utils/pedido";
 
 const filtrosStatus: Array<{ rotulo: string; valor: StatusPedido | "todos" }> = [
   { rotulo: "Todos", valor: "todos" },
@@ -15,58 +14,6 @@ const filtrosStatus: Array<{ rotulo: string; valor: StatusPedido | "todos" }> = 
   { rotulo: "Cancelados", valor: "cancelado" },
 ];
 
-function formatarMoeda(valor: number) {
-  return valor.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
-}
-
-function formatarData(valor: string) {
-  return new Date(valor).toLocaleString("pt-BR", {
-    dateStyle: "short",
-    timeStyle: "short",
-  });
-}
-
-function formatarStatus(status: string) {
-  return status.replace("_", " ");
-}
-
-function proximoStatus(statusAtual: StatusPedido): StatusPedido | null {
-  // Esse fluxo representa a ordem normal da operacao da cozinha.
-  if (statusAtual === "recebido") return "em_preparo";
-  if (statusAtual === "em_preparo") return "pronto";
-  if (statusAtual === "pronto") return "entregue";
-  return null;
-}
-
-function tituloAcao(statusAtual: StatusPedido) {
-  if (statusAtual === "recebido") return "Marcar em preparo";
-  if (statusAtual === "em_preparo") return "Marcar pronto";
-  if (statusAtual === "pronto") return "Marcar entregue";
-  return "Fluxo encerrado";
-}
-
-function calcularResumo(pedidos: PedidoDados[]) {
-  return pedidos.reduce(
-    (acumulador, pedido) => {
-      // O resumo do topo serve para o operador bater o volume rapido sem abrir pedido por pedido.
-      acumulador.total += 1;
-      acumulador[pedido.status] += 1;
-      return acumulador;
-    },
-    {
-      total: 0,
-      recebido: 0,
-      em_preparo: 0,
-      pronto: 0,
-      entregue: 0,
-      cancelado: 0,
-    },
-  );
-}
-
 export function AdminPedidosPage() {
   const [filtroSelecionado, setFiltroSelecionado] = useState<StatusPedido | "todos">("todos");
   const { data, isLoading, isError, error, isFetching, refetch } = useAdminPedidos(
@@ -75,7 +22,7 @@ export function AdminPedidosPage() {
   const atualizarStatus = usePedidoStatusAtualizar();
   const removerPedido = usePedidoRemover();
 
-  const resumo = useMemo(() => calcularResumo(data ?? []), [data]);
+  const resumo = useMemo(() => calcularResumoPedidos(data ?? []), [data]);
 
   function alterarStatus(pedidoId: number, status: StatusPedido) {
     atualizarStatus.mutate({ id: pedidoId, status });
@@ -91,10 +38,6 @@ export function AdminPedidosPage() {
         <div>
           <span className="painel-banner__tag">Operacao do restaurante</span>
           <h1>Painel de pedidos em tempo real por polling</h1>
-          <p>
-            Novos pedidos do tablet aparecem automaticamente aqui a cada 5 segundos, com prioridade
-            para os nao finalizados.
-          </p>
         </div>
 
         <div className="painel-banner__acoes">
@@ -130,9 +73,6 @@ export function AdminPedidosPage() {
         <div className="painel__topo">
           <div>
             <h2>Fila operacional</h2>
-            <p>
-              Consumo de <strong>GET /api/admin/pedidos</strong> com filtro opcional por status.
-            </p>
           </div>
         </div>
 
@@ -208,7 +148,7 @@ export function AdminPedidosPage() {
                     disabled={!statusSeguinte || atualizarStatus.isPending || removerPedido.isPending}
                     onClick={() => statusSeguinte && alterarStatus(pedido.id, statusSeguinte)}
                   >
-                    {tituloAcao(pedido.status)}
+                    {tituloAcaoStatus(pedido.status)}
                   </button>
 
                   {pedido.status !== "cancelado" && pedido.status !== "entregue" ? (

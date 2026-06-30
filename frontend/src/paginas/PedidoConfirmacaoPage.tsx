@@ -1,32 +1,8 @@
 import { Link, useParams } from "@tanstack/react-router";
 
-import { usePedidoDetalhe } from "../hooks/usePedidoDetalhe";
-import type { StatusPedido } from "../interfaces/StatusPedido";
-
-function formatarMoeda(valor: number) {
-  return valor.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
-}
-
-function formatarData(valor: string) {
-  return new Date(valor).toLocaleString("pt-BR", {
-    dateStyle: "short",
-    timeStyle: "short",
-  });
-}
-
-function formatarStatus(status: string) {
-  return status.replace("_", " ");
-}
-
-const etapasPedido: StatusPedido[] = ["recebido", "em_preparo", "pronto", "entregue"];
-
-function etapaEstaConcluida(etapa: StatusPedido, statusAtual: StatusPedido) {
-  if (statusAtual === "cancelado") return false;
-  return etapasPedido.indexOf(etapa) <= etapasPedido.indexOf(statusAtual);
-}
+import { usePedidoDetalhe } from "../hooks/pedidoHooks";
+import { formatarData, formatarMoeda, formatarStatus } from "../utils/formatadores";
+import { etapaEstaConcluida, etapasPedido } from "../utils/pedido";
 
 export function PedidoConfirmacaoPage() {
   const { pedidoId } = useParams({ from: "/cliente/pedido/$pedidoId" });
@@ -38,7 +14,6 @@ export function PedidoConfirmacaoPage() {
         <div className="painel__topo">
           <div>
             <h1>Pedido enviado para a cozinha</h1>
-            <p>Acompanhe o resumo e o status do seu pedido em tempo real nesta tela.</p>
           </div>
           <div className="confirmacao__acoes">
             <span className="painel__status">

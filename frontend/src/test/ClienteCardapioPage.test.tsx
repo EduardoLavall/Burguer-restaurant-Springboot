@@ -14,11 +14,11 @@ vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => navigateMock,
 }));
 
-vi.mock("../hooks/useCardapioDados", () => ({
+vi.mock("../hooks/produtoHooks", () => ({
   useCardapioDados: () => useCardapioDadosMock(),
 }));
 
-vi.mock("../hooks/usePedidoCheckout", () => ({
+vi.mock("../hooks/pedidoHooks", () => ({
   usePedidoCheckout: () => usePedidoCheckoutMock(),
 }));
 

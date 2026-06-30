@@ -19,7 +19,6 @@ function LayoutRotas() {
         <div>
           <span className="shell-app__tag">Hamburgueria v1</span>
           <strong>Burguer Restaurant</strong>
-          <p>Tablet do cliente e painel do restaurante no mesmo app React.</p>
         </div>
 
         <nav className="shell-app__nav" aria-label="Navegacao principal">

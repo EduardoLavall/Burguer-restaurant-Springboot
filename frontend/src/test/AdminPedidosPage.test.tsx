@@ -8,18 +8,12 @@ const useAdminPedidosMock = vi.fn();
 const atualizarStatusMock = vi.fn();
 const removerPedidoMock = vi.fn();
 
-vi.mock("../hooks/useAdminPedidos", () => ({
+vi.mock("../hooks/pedidoHooks", () => ({
   useAdminPedidos: (status?: string) => useAdminPedidosMock(status),
-}));
-
-vi.mock("../hooks/usePedidoStatusAtualizar", () => ({
   usePedidoStatusAtualizar: () => ({
     mutate: atualizarStatusMock,
     isPending: false,
   }),
-}));
-
-vi.mock("../hooks/usePedidoRemover", () => ({
   usePedidoRemover: () => ({
     mutate: removerPedidoMock,
     isPending: false,

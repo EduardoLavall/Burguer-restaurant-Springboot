@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 
-import { useProdutoAtualizar } from "../hooks/useProdutoAtualizar";
-import { useProdutoDadosMutate } from "../hooks/useProdutoDadosMutate";
+import { useProdutoAtualizar, useProdutoCriar } from "../hooks/produtoHooks";
+import type { CategoriaProduto } from "../interfaces/CategoriaProduto";
 import type { ProdutoDados } from "../interfaces/ProdutoDados";
 import "./formularioProduto.css";
 
@@ -14,11 +14,11 @@ export function FormularioProduto({ onSuccess, initial }: FormularioProdutoProps
   const [nome, setNome] = useState("");
   const [descricao, setDescricao] = useState("");
   const [preco, setPreco] = useState("");
-  const [categoria, setCategoria] = useState("comida");
+  const [categoria, setCategoria] = useState<CategoriaProduto>("comida");
   const [imagem, setImagem] = useState("");
   const [disponibilidade, setDisponibilidade] = useState(true);
 
-  const { mutate: criar, isPending: criando } = useProdutoDadosMutate();
+  const { mutate: criar, isPending: criando } = useProdutoCriar();
   const { mutate: atualizar, isPending: atualizando } = useProdutoAtualizar();
 
   useEffect(() => {
@@ -119,7 +119,7 @@ export function FormularioProduto({ onSuccess, initial }: FormularioProdutoProps
             required
           />
 
-          <select value={categoria} onChange={(event) => setCategoria(event.target.value)}>
+          <select value={categoria} onChange={(event) => setCategoria(event.target.value as CategoriaProduto)}>
             <option value="comida">comida</option>
             <option value="bebida">bebida</option>
             <option value="acompanhamento">acompanhamento</option>

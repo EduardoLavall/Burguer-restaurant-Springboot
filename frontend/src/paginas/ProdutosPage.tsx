@@ -3,7 +3,7 @@ import { useState } from "react";
 import { CartaoProduto } from "../componentes/CartaoProduto";
 import { FormularioProduto } from "../componentes/FormularioProduto";
 import { Modal } from "../componentes/Modal";
-import { useProdutoDados } from "../hooks/useProdutoDados";
+import { useProdutoDados } from "../hooks/produtoHooks";
 
 export function ProdutosPage() {
   const { data, isLoading, isError, error, refetch, isFetching } = useProdutoDados();
@@ -15,10 +15,6 @@ export function ProdutosPage() {
         <div>
           <span className="painel-banner__tag">Area administrativa</span>
           <h1>Gestao de produtos da hamburgueria</h1>
-          <p>
-            Cadastre, edite e controle o que fica visivel no tablet do cliente sem misturar o
-            fluxo de operacao com o fluxo de compra.
-          </p>
         </div>
 
         <div className="painel-banner__acoes">
@@ -39,10 +35,6 @@ export function ProdutosPage() {
         <div className="painel__topo">
           <div>
             <h2>Catalogo administrativo</h2>
-            <p>
-              Consumo de <strong>GET /api/admin/produtos</strong> com edicao e controle de
-              disponibilidade.
-            </p>
           </div>
 
           {isFetching && !isLoading ? <span className="painel__status">Sincronizando...</span> : null}
