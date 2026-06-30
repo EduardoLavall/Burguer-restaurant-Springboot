@@ -6,9 +6,9 @@ Usage:
 Description:
   - Carrega variaveis do arquivo .env (se existir) para o ambiente da sessao.
   - Usa `SQLite` como banco local oficial do projeto.
-  - Sobe o frontend Vite automaticamente em paralelo.
+  - Sobe frontend e backend em segundo plano.
+  - Ignora processos que ja estiverem rodando nas portas do projeto.
   - Executa `mvnw.cmd` para baixar dependencias/build (a menos que -NoBuild seja passado).
-  - Executa `mvnw.cmd spring-boot:run` para iniciar a aplicacao.
 
 Examples:
   .\run-with-env.ps1
@@ -46,8 +46,25 @@ function Load-EnvFile {
     }
 }
 
+function Ensure-LogDir {
+    $logDir = Join-Path $scriptDir 'tmp'
+    if (-not (Test-Path $logDir)) {
+        New-Item -ItemType Directory -Path $logDir | Out-Null
+    }
+    return $logDir
+}
+
+function Test-PortListening {
+    param([int]$Port)
+
+    return [bool](Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue)
+}
+
 function Start-Frontend {
-    param([string]$frontendDir)
+    param(
+        [string]$frontendDir,
+        [int]$frontendPort = 5173
+    )
 
     if (-not (Test-Path (Join-Path $frontendDir 'package.json'))) {
         Write-Warning "Frontend nao encontrado em $frontendDir. Pulando subida do Vite."
@@ -60,17 +77,18 @@ function Start-Frontend {
         return
     }
 
-    $viteLogDir = Join-Path $scriptDir 'tmp'
-    if (-not (Test-Path $viteLogDir)) {
-        New-Item -ItemType Directory -Path $viteLogDir | Out-Null
+    if (Test-PortListening -Port $frontendPort) {
+        Write-Host "Frontend ja esta rodando na porta $frontendPort. Ignorando nova subida."
+        return
     }
 
+    $viteLogDir = Ensure-LogDir
     $stdoutLog = Join-Path $viteLogDir 'frontend-vite.out.log'
     $stderrLog = Join-Path $viteLogDir 'frontend-vite.err.log'
 
     $processoFrontend = Start-Process `
         -FilePath $npmCmd.Source `
-        -ArgumentList 'run', 'dev' `
+        -ArgumentList 'run', 'dev', '--', '--host', '0.0.0.0', '--port', "$frontendPort" `
         -WorkingDirectory $frontendDir `
         -WindowStyle Hidden `
         -RedirectStandardOutput $stdoutLog `
@@ -79,6 +97,41 @@ function Start-Frontend {
 
     Write-Host "Frontend iniciado em segundo plano com PID $($processoFrontend.Id)."
     Write-Host "Logs do frontend: $stdoutLog"
+}
+
+function Start-Backend {
+    param(
+        [string]$mvnwPath,
+        [int]$backendPort = 8080,
+        [switch]$SkipBuild
+    )
+
+    if (Test-PortListening -Port $backendPort) {
+        Write-Host "Backend ja esta rodando na porta $backendPort. Ignorando nova subida."
+        return
+    }
+
+    $logDir = Ensure-LogDir
+    $stdoutLog = Join-Path $logDir 'backend-spring.out.log'
+    $stderrLog = Join-Path $logDir 'backend-spring.err.log'
+
+    $argumentos = if ($SkipBuild) {
+        '/c', 'mvnw.cmd -Dmaven.test.skip=true spring-boot:run'
+    } else {
+        '/c', 'mvnw.cmd -Dmaven.test.skip=true clean spring-boot:run'
+    }
+
+    $processoBackend = Start-Process `
+        -FilePath 'cmd.exe' `
+        -ArgumentList $argumentos `
+        -WorkingDirectory $scriptDir `
+        -WindowStyle Hidden `
+        -RedirectStandardOutput $stdoutLog `
+        -RedirectStandardError $stderrLog `
+        -PassThru
+
+    Write-Host "Backend iniciado em segundo plano com PID $($processoBackend.Id)."
+    Write-Host "Logs do backend: $stdoutLog"
 }
 
 $envFile = Join-Path $scriptDir '.env'
@@ -95,12 +148,13 @@ Start-Frontend -frontendDir $frontendDir
 $mvnw = Join-Path $scriptDir 'mvnw.cmd'
 if (-not (Test-Path $mvnw)) { throw "mvnw.cmd not found in $scriptDir" }
 
-if (-not $NoBuild) {
-    Write-Host "Running mvnw clean package (dependencies will be downloaded). This may take a while..."
-    & $mvnw clean package -DskipTests
+$backendPort = 8080
+if ($env:SERVER_PORT) {
+    $backendPort = [int]$env:SERVER_PORT
 }
 
-Write-Host "Starting application with mvnw spring-boot:run"
-& $mvnw spring-boot:run
+Start-Backend -mvnwPath $mvnw -backendPort $backendPort -SkipBuild:$NoBuild
+
+Write-Host "Script finalizado. Frontend e backend foram iniciados em paralelo quando necessario."
 
 Pop-Location

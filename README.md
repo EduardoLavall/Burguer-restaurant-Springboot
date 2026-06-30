@@ -69,6 +69,8 @@ Esse fluxo sobe:
 - frontend Vite em `http://localhost:5173`
 - backend Spring Boot em `http://localhost:8080`
 
+Se algum deles ja estiver rodando, o script apenas reaproveita o processo atual e nao sobe duplicado.
+
 ### Opcao 2 - subir manualmente
 
 Backend:
