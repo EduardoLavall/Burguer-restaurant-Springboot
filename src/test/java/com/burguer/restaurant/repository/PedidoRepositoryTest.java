@@ -35,7 +35,7 @@ class PedidoRepositoryTest {
 
     @Test
     void devePersistirEPesquisarPedidoComItens() {
-        Produto burger = produtoRepository.salvar(new Produto(
+        ProdutoRepository.Produto burger = produtoRepository.salvar(new ProdutoRepository.Produto(
                 null,
                 "Burger Smash",
                 "Pao, carne e queijo",
@@ -44,7 +44,7 @@ class PedidoRepositoryTest {
                 true,
                 null));
 
-        Produto fritas = produtoRepository.salvar(new Produto(
+        ProdutoRepository.Produto fritas = produtoRepository.salvar(new ProdutoRepository.Produto(
                 null,
                 "Batata rustica",
                 "Porcao grande",
@@ -54,14 +54,14 @@ class PedidoRepositoryTest {
                 null));
 
         OffsetDateTime agora = OffsetDateTime.now();
-        Pedido pedidoSalvo = pedidoRepository.salvar(new Pedido(
+        PedidoRepository.Pedido pedidoSalvo = pedidoRepository.salvar(new PedidoRepository.Pedido(
                 null,
                 "Juliana",
                 5,
                 List.of(
-                        new ItemPedido(burger, 2),
-                        new ItemPedido(fritas, 1)),
-                Pedido.Status.recebido,
+                        new PedidoRepository.ItemPedido(burger, 2),
+                        new PedidoRepository.ItemPedido(fritas, 1)),
+                PedidoRepository.Pedido.Status.recebido,
                 agora,
                 agora));
 
@@ -69,7 +69,7 @@ class PedidoRepositoryTest {
 
         assertThat(pedidoEncontrado.getNomeCliente()).isEqualTo("Juliana");
         assertThat(pedidoEncontrado.getNumeroMesa()).isEqualTo(5);
-        assertThat(pedidoEncontrado.getStatus()).isEqualTo(Pedido.Status.recebido);
+        assertThat(pedidoEncontrado.getStatus()).isEqualTo(PedidoRepository.Pedido.Status.recebido);
         assertThat(pedidoEncontrado.getItensPedido()).hasSize(2);
         assertThat(pedidoEncontrado.getSubtotal()).isEqualByComparingTo("75.30");
         assertThat(pedidoEncontrado.getTaxaServico()).isEqualByComparingTo("7.53");

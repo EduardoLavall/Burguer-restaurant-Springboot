@@ -1,5 +1,7 @@
 package com.burguer.restaurant.repository;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -45,6 +47,122 @@ public class PedidoRepository {
     public PedidoRepository(JdbcTemplate jdbcTemplate, ProdutoRepository produtoRepository) {
         this.jdbcTemplate = jdbcTemplate;
         this.produtoRepository = produtoRepository;
+    }
+
+    public static class ItemPedido {
+
+        private final ProdutoRepository.Produto produto;
+        private final int quantidade;
+
+        public ItemPedido(ProdutoRepository.Produto produto, int quantidade) {
+            this.produto = produto;
+            this.quantidade = quantidade;
+        }
+
+        public ProdutoRepository.Produto getProduto() {
+            return produto;
+        }
+
+        public int getQuantidade() {
+            return quantidade;
+        }
+
+        public BigDecimal getSubtotal() {
+            return produto.getPreco().multiply(BigDecimal.valueOf(quantidade));
+        }
+    }
+
+    public static class Pedido {
+
+        public enum Status {
+            recebido,
+            em_preparo,
+            pronto,
+            entregue,
+            cancelado
+        }
+
+        private static final BigDecimal TAXA_SERVICO = new BigDecimal("0.10");
+
+        private final Long id;
+        private final String nomeCliente;
+        private final Integer numeroMesa;
+        private final List<ItemPedido> itensPedido;
+        private final Status status;
+        private final OffsetDateTime dataCriacao;
+        private final OffsetDateTime dataAtualizacao;
+
+        public Pedido(Long id, String nomeCliente, Integer numeroMesa, List<ItemPedido> itensPedido, Status status,
+                OffsetDateTime dataCriacao, OffsetDateTime dataAtualizacao) {
+            this.id = id;
+            this.nomeCliente = nomeCliente;
+            this.numeroMesa = numeroMesa;
+            this.itensPedido = List.copyOf(itensPedido);
+            this.status = status;
+            this.dataCriacao = dataCriacao;
+            this.dataAtualizacao = dataAtualizacao;
+        }
+
+        public Long getId() {
+            return id;
+        }
+
+        public String getNomeCliente() {
+            return nomeCliente;
+        }
+
+        public Integer getNumeroMesa() {
+            return numeroMesa;
+        }
+
+        public List<ItemPedido> getItensPedido() {
+            return itensPedido;
+        }
+
+        public Status getStatus() {
+            return status;
+        }
+
+        public OffsetDateTime getDataCriacao() {
+            return dataCriacao;
+        }
+
+        public OffsetDateTime getDataAtualizacao() {
+            return dataAtualizacao;
+        }
+
+        // O subtotal sempre vem da soma dos itens para evitar valor divergente salvo de fora.
+        public BigDecimal getSubtotal() {
+            return itensPedido.stream()
+                    .map(ItemPedido::getSubtotal)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add)
+                    .setScale(2, RoundingMode.HALF_UP);
+        }
+
+        // A v1 do trabalho usa taxa fixa de 10 por cento para todos os pedidos.
+        public BigDecimal getTaxaServico() {
+            return getSubtotal()
+                    .multiply(TAXA_SERVICO)
+                    .setScale(2, RoundingMode.HALF_UP);
+        }
+
+        public BigDecimal getValorTotal() {
+            return getSubtotal()
+                    .add(getTaxaServico())
+                    .setScale(2, RoundingMode.HALF_UP);
+        }
+
+        // Ao mudar o status, mantemos o restante do pedido igual e atualizamos so a data da operacao.
+        public Pedido comStatus(Status novoStatus, OffsetDateTime novaDataAtualizacao) {
+            return new Pedido(
+                    id,
+                    nomeCliente,
+                    numeroMesa,
+                    itensPedido,
+                    novoStatus,
+                    dataCriacao,
+                    novaDataAtualizacao);
+        }
     }
 
     public List<Pedido> listarTodos() {
@@ -139,7 +257,7 @@ public class PedidoRepository {
             Long produtoId = itemRs.getLong("produto_id");
             int quantidade = itemRs.getInt("quantidade");
             // O item guarda so o id do produto, entao aqui eu remonto o objeto completo para o modelo interno.
-            Produto produto = produtoRepository.buscarPorId(produtoId).orElseThrow();
+            ProdutoRepository.Produto produto = produtoRepository.buscarPorId(produtoId).orElseThrow();
             return new ItemPedido(produto, quantidade);
         }, pedidoId);
     }

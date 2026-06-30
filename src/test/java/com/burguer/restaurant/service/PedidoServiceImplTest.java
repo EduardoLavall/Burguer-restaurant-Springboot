@@ -19,11 +19,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.burguer.restaurant.dto.PedidoDto;
-import com.burguer.restaurant.repository.ItemPedido;
-import com.burguer.restaurant.repository.Pedido;
 import com.burguer.restaurant.repository.PedidoRepository;
-import com.burguer.restaurant.repository.Produto;
 import com.burguer.restaurant.repository.ProdutoRepository;
+import com.burguer.restaurant.repository.PedidoRepository.ItemPedido;
+import com.burguer.restaurant.repository.PedidoRepository.Pedido;
+import com.burguer.restaurant.repository.ProdutoRepository.Produto;
 
 @ExtendWith(MockitoExtension.class)
 class PedidoServiceImplTest {

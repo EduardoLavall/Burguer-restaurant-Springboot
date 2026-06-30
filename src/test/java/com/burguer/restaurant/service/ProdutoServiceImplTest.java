@@ -17,8 +17,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 
 import com.burguer.restaurant.dto.ProdutoDto;
-import com.burguer.restaurant.repository.Produto;
 import com.burguer.restaurant.repository.ProdutoRepository;
+import com.burguer.restaurant.repository.ProdutoRepository.Produto;
 
 @ExtendWith(MockitoExtension.class)
 class ProdutoServiceImplTest {

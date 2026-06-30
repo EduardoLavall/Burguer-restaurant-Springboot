@@ -7,8 +7,8 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import com.burguer.restaurant.dto.ProdutoDto;
-import com.burguer.restaurant.repository.Produto;
 import com.burguer.restaurant.repository.ProdutoRepository;
+import com.burguer.restaurant.repository.ProdutoRepository.Produto;
 
 @Service
 public class ProdutoService {

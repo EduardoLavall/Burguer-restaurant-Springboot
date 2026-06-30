@@ -113,9 +113,20 @@ npm run dev
 
 - banco oficial: `SQLite`
 - arquivo local: `data/restaurant.db`
-- migrations: `src/main/resources/db/migration-sqlite`
+- migration unica atual: `src/main/resources/db/migration-sqlite/V1__estrutura_inicial.sql`
 
 Nao usamos mais `Docker` nem `MySQL` neste repositorio.
+
+### Recriar a base local
+
+Como as migrations foram consolidadas em uma versao unica, a base local antiga precisa ser recriada para ficar alinhada com o estado atual do projeto.
+
+Passos:
+
+```powershell
+Remove-Item .\data\restaurant.db -ErrorAction SilentlyContinue
+.\run-with-env.ps1
+```
 
 ## Testes
 
