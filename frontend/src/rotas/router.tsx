@@ -1,5 +1,4 @@
 import {
-  Link,
   Navigate,
   Outlet,
   createRootRoute,
@@ -11,6 +10,13 @@ import { AdminPedidosPage } from "../paginas/AdminPedidosPage";
 import { ClienteCardapioPage } from "../paginas/ClienteCardapioPage";
 import { PedidoConfirmacaoPage } from "../paginas/PedidoConfirmacaoPage";
 import { ProdutosPage } from "../paginas/ProdutosPage";
+import {
+  podeAcessarAdmin,
+  podeAcessarCliente,
+  rotaFallbackAdmin,
+  rotaFallbackCliente,
+  rotaInicial,
+} from "../config/modoApp";
 
 function LayoutRotas() {
   return (
@@ -20,18 +26,6 @@ function LayoutRotas() {
           <span className="shell-app__tag">Hamburgueria v1</span>
           <strong>Burguer Restaurant</strong>
         </div>
-
-        <nav className="shell-app__nav" aria-label="Navegacao principal">
-          <Link to="/cliente" className="shell-app__link">
-            Cliente
-          </Link>
-          <Link to="/admin/produtos" className="shell-app__link">
-            Admin Produtos
-          </Link>
-          <Link to="/admin/pedidos" className="shell-app__link">
-            Admin Pedidos
-          </Link>
-        </nav>
       </header>
 
       <Outlet />
@@ -46,37 +40,41 @@ const rootRoute = createRootRoute({
 const homeRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
-  component: () => <Navigate to="/cliente" replace />,
+  component: () => <Navigate to={rotaInicial()} replace />,
 });
 
 const clienteRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/cliente",
-  component: ClienteCardapioPage,
+  component: () =>
+    podeAcessarCliente() ? <ClienteCardapioPage /> : <Navigate to={rotaFallbackCliente()} replace />,
 });
 
 const pedidoConfirmacaoRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/cliente/pedido/$pedidoId",
-  component: PedidoConfirmacaoPage,
+  component: () =>
+    podeAcessarCliente() ? <PedidoConfirmacaoPage /> : <Navigate to={rotaFallbackCliente()} replace />,
 });
 
 const adminRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/admin",
-  component: () => <Navigate to="/admin/produtos" replace />,
+  component: () => <Navigate to={rotaFallbackAdmin()} replace />,
 });
 
 const adminProdutosRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/admin/produtos",
-  component: ProdutosPage,
+  component: () =>
+    podeAcessarAdmin() ? <ProdutosPage /> : <Navigate to={rotaFallbackAdmin()} replace />,
 });
 
 const adminPedidosRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/admin/pedidos",
-  component: AdminPedidosPage,
+  component: () =>
+    podeAcessarAdmin() ? <AdminPedidosPage /> : <Navigate to={rotaFallbackAdmin()} replace />,
 });
 
 const routeTree = rootRoute.addChildren([

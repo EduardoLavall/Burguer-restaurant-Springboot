@@ -2,8 +2,10 @@ spring:
   application:
     name: burguer-restaurant
   datasource:
-    url: jdbc:sqlite:./data/restaurant.db
+    url: jdbc:sqlite:./data/restaurant-app.db
     driver-class-name: org.sqlite.JDBC
+    hikari:
+      connection-init-sql: PRAGMA foreign_keys=ON
   flyway:
     enabled: true
     locations: classpath:db/migration-sqlite

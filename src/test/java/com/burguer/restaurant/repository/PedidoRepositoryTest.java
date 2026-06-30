@@ -40,7 +40,7 @@ class PedidoRepositoryTest {
                 "Burger Smash",
                 "Pao, carne e queijo",
                 new BigDecimal("29.90"),
-                Produto.Categoria.comida,
+                ProdutoRepository.Produto.Categoria.comida,
                 true,
                 null));
 
@@ -49,7 +49,7 @@ class PedidoRepositoryTest {
                 "Batata rustica",
                 "Porcao grande",
                 new BigDecimal("15.50"),
-                Produto.Categoria.acompanhamento,
+                ProdutoRepository.Produto.Categoria.acompanhamento,
                 true,
                 null));
 
