@@ -1,7 +1,8 @@
-package com.burguer.restaurant.exception;
+package com.burguer.restaurant.controller;
 
 import java.time.OffsetDateTime;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
@@ -11,11 +12,13 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.burguer.restaurant.dto.RespostaErroApi;
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(RecursoNaoEncontradoException.class)
-    public ResponseEntity<RespostaErroApi> tratarRecursoNaoEncontrado(RecursoNaoEncontradoException excecao) {
+    @ExceptionHandler(NoSuchElementException.class)
+    public ResponseEntity<RespostaErroApi> tratarRecursoNaoEncontrado(NoSuchElementException excecao) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
                 new RespostaErroApi(
                         OffsetDateTime.now(),
@@ -25,8 +28,8 @@ public class GlobalExceptionHandler {
                         Map.of()));
     }
 
-    @ExceptionHandler(RegraNegocioException.class)
-    public ResponseEntity<RespostaErroApi> tratarRegraNegocio(RegraNegocioException excecao) {
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<RespostaErroApi> tratarRegraNegocio(IllegalArgumentException excecao) {
         return ResponseEntity.badRequest().body(
                 new RespostaErroApi(
                         OffsetDateTime.now(),

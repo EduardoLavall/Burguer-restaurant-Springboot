@@ -1,18 +1,25 @@
-package com.burguer.restaurant.dominio.produto;
+package com.burguer.restaurant.repository;
 
 import java.math.BigDecimal;
 
 public class Produto {
 
+    public enum Categoria {
+        comida,
+        bebida,
+        acompanhamento,
+        doce
+    }
+
     private final Long id;
     private final String nome;
     private final String descricao;
     private BigDecimal preco;
-    private final CategoriaProduto categoria;
-    private boolean disponibilidade;
-    private String imagem;
+    private final Categoria categoria;
+    private final boolean disponibilidade;
+    private final String imagem;
 
-    public Produto(Long id, String nome, String descricao, BigDecimal preco, CategoriaProduto categoria,
+    public Produto(Long id, String nome, String descricao, BigDecimal preco, Categoria categoria,
             boolean disponibilidade, String imagem) {
         this.id = id;
         this.nome = nome;
@@ -39,7 +46,7 @@ public class Produto {
         return preco;
     }
 
-    public CategoriaProduto getCategoria() {
+    public Categoria getCategoria() {
         return categoria;
     }
 
@@ -53,13 +60,5 @@ public class Produto {
 
     public void alterarPreco(BigDecimal novoPreco) {
         this.preco = novoPreco;
-    }
-
-    public void remover() {
-        this.disponibilidade = false;
-    }
-
-    public void atualizarImagem(String novaImagem) {
-        this.imagem = novaImagem;
     }
 }

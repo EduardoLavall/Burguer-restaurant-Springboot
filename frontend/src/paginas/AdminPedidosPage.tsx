@@ -34,6 +34,7 @@ function formatarStatus(status: string) {
 }
 
 function proximoStatus(statusAtual: StatusPedido): StatusPedido | null {
+  // Esse fluxo representa a ordem normal da operacao da cozinha.
   if (statusAtual === "recebido") return "em_preparo";
   if (statusAtual === "em_preparo") return "pronto";
   if (statusAtual === "pronto") return "entregue";
@@ -50,6 +51,7 @@ function tituloAcao(statusAtual: StatusPedido) {
 function calcularResumo(pedidos: PedidoDados[]) {
   return pedidos.reduce(
     (acumulador, pedido) => {
+      // O resumo do topo serve para o operador bater o volume rapido sem abrir pedido por pedido.
       acumulador.total += 1;
       acumulador[pedido.status] += 1;
       return acumulador;
@@ -162,6 +164,7 @@ export function AdminPedidosPage() {
 
         <section className="grade-pedidos">
           {data?.map((pedido) => {
+            // Calculo a proxima etapa aqui para o botao sempre seguir o fluxo certo.
             const statusSeguinte = proximoStatus(pedido.status);
 
             return (

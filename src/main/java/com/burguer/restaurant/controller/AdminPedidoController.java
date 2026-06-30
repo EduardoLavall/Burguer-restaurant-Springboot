@@ -2,7 +2,7 @@ package com.burguer.restaurant.controller;
 
 import java.util.List;
 
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -10,11 +10,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.burguer.restaurant.dominio.pedido.StatusPedido;
-import com.burguer.restaurant.dto.pedido.PedidoResposta;
-import com.burguer.restaurant.dto.pedido.PedidoStatusRequisicao;
+import com.burguer.restaurant.dto.PedidoDto;
 import com.burguer.restaurant.service.PedidoService;
 
 import jakarta.validation.Valid;
@@ -30,19 +29,19 @@ public class AdminPedidoController {
     }
 
     @GetMapping
-    public ResponseEntity<List<PedidoResposta>> listarTodos(@RequestParam(required = false) StatusPedido status) {
-        return ResponseEntity.ok(pedidoService.listarTodos(status));
+    public List<PedidoDto.Resposta> listarTodos(@RequestParam(required = false) PedidoDto.Status status) {
+        return pedidoService.listarTodos(status);
     }
 
     @PatchMapping("/{id}/status")
-    public ResponseEntity<PedidoResposta> atualizarStatus(@PathVariable Long id,
-            @Valid @RequestBody PedidoStatusRequisicao requisicao) {
-        return ResponseEntity.ok(pedidoService.atualizarStatus(id, requisicao));
+    public PedidoDto.Resposta atualizarStatus(@PathVariable Long id,
+            @Valid @RequestBody PedidoDto.AtualizacaoStatusRequisicao requisicao) {
+        return pedidoService.atualizarStatus(id, requisicao);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> remover(@PathVariable Long id) {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void remover(@PathVariable Long id) {
         pedidoService.remover(id);
-        return ResponseEntity.noContent().build();
     }
 }

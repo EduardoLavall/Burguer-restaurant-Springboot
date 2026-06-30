@@ -13,6 +13,7 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
   if (!isOpen) return null;
 
   return createPortal(
+    // O clique no fundo fecha o modal, mas o clique dentro da janela nao pode propagar.
     <div className="modal-overlay" onMouseDown={onClose}>
       <div className="modal" onMouseDown={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
         <header className="modal__header">

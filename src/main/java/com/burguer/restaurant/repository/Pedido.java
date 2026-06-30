@@ -1,4 +1,4 @@
-package com.burguer.restaurant.dominio.pedido;
+package com.burguer.restaurant.repository;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -7,17 +7,25 @@ import java.util.List;
 
 public class Pedido {
 
+    public enum Status {
+        recebido,
+        em_preparo,
+        pronto,
+        entregue,
+        cancelado
+    }
+
     private static final BigDecimal TAXA_SERVICO = new BigDecimal("0.10");
 
     private final Long id;
     private final String nomeCliente;
     private final Integer numeroMesa;
     private final List<ItemPedido> itensPedido;
-    private final StatusPedido status;
+    private final Status status;
     private final OffsetDateTime dataCriacao;
     private final OffsetDateTime dataAtualizacao;
 
-    public Pedido(Long id, String nomeCliente, Integer numeroMesa, List<ItemPedido> itensPedido, StatusPedido status,
+    public Pedido(Long id, String nomeCliente, Integer numeroMesa, List<ItemPedido> itensPedido, Status status,
             OffsetDateTime dataCriacao, OffsetDateTime dataAtualizacao) {
         this.id = id;
         this.nomeCliente = nomeCliente;
@@ -44,7 +52,7 @@ public class Pedido {
         return itensPedido;
     }
 
-    public StatusPedido getStatus() {
+    public Status getStatus() {
         return status;
     }
 
@@ -78,7 +86,7 @@ public class Pedido {
     }
 
     // Ao mudar o status, mantemos o restante do pedido igual e atualizamos so a data da operacao.
-    public Pedido comStatus(StatusPedido novoStatus, OffsetDateTime novaDataAtualizacao) {
+    public Pedido comStatus(Status novoStatus, OffsetDateTime novaDataAtualizacao) {
         return new Pedido(
                 id,
                 nomeCliente,

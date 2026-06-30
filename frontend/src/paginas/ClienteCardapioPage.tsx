@@ -29,6 +29,7 @@ function normalizarCategoria(categoria: string) {
 function agruparCardapioPorCategoria(data?: CardapioProdutoDados[]): CategoriaAgrupada[] {
   if (!data) return [];
 
+  // Separei por categoria para a navegacao no tablet ficar mais organizada.
   const grupos = new Map<string, CardapioProdutoDados[]>();
 
   data.forEach((produto) => {
@@ -44,6 +45,7 @@ function agruparCardapioPorCategoria(data?: CardapioProdutoDados[]): CategoriaAg
 }
 
 function calcularResumoCarrinho(carrinho: ItemCarrinho[]) {
+  // O frontend mostra uma previa, mas o valor oficial ainda e recalculado no backend.
   const subtotal = carrinho.reduce((acumulador, item) => acumulador + item.preco * item.quantidade, 0);
   const taxaServico = subtotal * 0.1;
   const valorTotal = subtotal + taxaServico;
@@ -110,6 +112,7 @@ export function ClienteCardapioPage() {
   function finalizarPedido() {
     if (carrinho.length === 0) return;
 
+    // Envio so o necessario para a API montar o pedido oficial do restaurante.
     const payload = montarPayloadCheckout(nomeCliente, numeroMesa, carrinho);
 
     pedidoCheckout.mutate(payload, {
@@ -186,6 +189,7 @@ export function ClienteCardapioPage() {
 
                 <div className="catalogo-cliente__itens">
                   {grupo.itens.map((produto) => {
+                    // Se o produto nao tiver imagem, eu uso o placeholder para a grade nao quebrar.
                     const imagem = produto.imagem?.trim() ? produto.imagem : "/placeholder-produto.svg";
 
                     return (

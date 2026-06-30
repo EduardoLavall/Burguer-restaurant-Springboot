@@ -16,11 +16,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 
-import com.burguer.restaurant.dominio.produto.CategoriaProduto;
-import com.burguer.restaurant.dominio.produto.Produto;
-import com.burguer.restaurant.exception.RegraNegocioException;
+import com.burguer.restaurant.dto.ProdutoDto;
+import com.burguer.restaurant.repository.Produto;
 import com.burguer.restaurant.repository.ProdutoRepository;
-import com.burguer.restaurant.service.impl.ProdutoServiceImpl;
 
 @ExtendWith(MockitoExtension.class)
 class ProdutoServiceImplTest {
@@ -35,7 +33,7 @@ class ProdutoServiceImplTest {
                 "Burger da Casa",
                 "Pao, carne e cheddar",
                 new BigDecimal("28.90"),
-                CategoriaProduto.comida,
+                Produto.Categoria.comida,
                 true,
                 null);
 
@@ -44,19 +42,19 @@ class ProdutoServiceImplTest {
                 "Milk-shake",
                 "Baunilha com calda",
                 new BigDecimal("16.00"),
-                CategoriaProduto.doce,
+                Produto.Categoria.doce,
                 false,
                 null);
 
         when(produtoRepository.listarTodos()).thenReturn(List.of(hamburguer, sobremesaIndisponivel));
 
-        ProdutoService produtoService = new ProdutoServiceImpl(produtoRepository);
+        ProdutoService produtoService = new ProdutoService(produtoRepository);
 
         var cardapio = produtoService.listarCardapio();
 
         assertThat(cardapio).hasSize(1);
         assertThat(cardapio.getFirst().nome()).isEqualTo("Burger da Casa");
-        assertThat(cardapio.getFirst().categoria()).isEqualTo(CategoriaProduto.comida);
+        assertThat(cardapio.getFirst().categoria()).isEqualTo(ProdutoDto.Categoria.comida);
     }
 
     @Test
@@ -66,13 +64,13 @@ class ProdutoServiceImplTest {
                 "Batata Rustica",
                 "Porcao crocante",
                 new BigDecimal("18.90"),
-                CategoriaProduto.acompanhamento,
+                Produto.Categoria.acompanhamento,
                 true,
                 null);
 
         when(produtoRepository.buscarPorId(3L)).thenReturn(Optional.of(produto));
 
-        ProdutoService produtoService = new ProdutoServiceImpl(produtoRepository);
+        ProdutoService produtoService = new ProdutoService(produtoRepository);
 
         produtoService.remover(3L);
 
@@ -86,7 +84,7 @@ class ProdutoServiceImplTest {
                 "Burger Especial",
                 "Cheddar e cebola",
                 new BigDecimal("31.90"),
-                CategoriaProduto.comida,
+                Produto.Categoria.comida,
                 true,
                 null);
 
@@ -95,10 +93,10 @@ class ProdutoServiceImplTest {
                 .when(produtoRepository)
                 .removerPorId(4L);
 
-        ProdutoService produtoService = new ProdutoServiceImpl(produtoRepository);
+        ProdutoService produtoService = new ProdutoService(produtoRepository);
 
         assertThatThrownBy(() -> produtoService.remover(4L))
-                .isInstanceOf(RegraNegocioException.class)
+                .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Nao e permitido excluir produto que ja faz parte de pedidos.");
     }
 }

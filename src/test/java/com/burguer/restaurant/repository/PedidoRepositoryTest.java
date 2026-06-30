@@ -1,4 +1,4 @@
-package com.burguer.restaurant.repository.jdbc;
+package com.burguer.restaurant.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -12,18 +12,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import com.burguer.restaurant.dominio.pedido.ItemPedido;
-import com.burguer.restaurant.dominio.pedido.Pedido;
-import com.burguer.restaurant.dominio.pedido.StatusPedido;
-import com.burguer.restaurant.dominio.produto.CategoriaProduto;
-import com.burguer.restaurant.dominio.produto.Produto;
-import com.burguer.restaurant.repository.PedidoRepository;
-import com.burguer.restaurant.repository.ProdutoRepository;
-
 @SpringBootTest(properties = {
         "spring.datasource.url=jdbc:sqlite:./target/test-restaurant.db"
 })
-class PedidoRepositoryJdbcTest {
+class PedidoRepositoryTest {
 
     @Autowired
     private PedidoRepository pedidoRepository;
@@ -48,7 +40,7 @@ class PedidoRepositoryJdbcTest {
                 "Burger Smash",
                 "Pao, carne e queijo",
                 new BigDecimal("29.90"),
-                CategoriaProduto.comida,
+                Produto.Categoria.comida,
                 true,
                 null));
 
@@ -57,7 +49,7 @@ class PedidoRepositoryJdbcTest {
                 "Batata rustica",
                 "Porcao grande",
                 new BigDecimal("15.50"),
-                CategoriaProduto.acompanhamento,
+                Produto.Categoria.acompanhamento,
                 true,
                 null));
 
@@ -69,7 +61,7 @@ class PedidoRepositoryJdbcTest {
                 List.of(
                         new ItemPedido(burger, 2),
                         new ItemPedido(fritas, 1)),
-                StatusPedido.recebido,
+                Pedido.Status.recebido,
                 agora,
                 agora));
 
@@ -77,7 +69,7 @@ class PedidoRepositoryJdbcTest {
 
         assertThat(pedidoEncontrado.getNomeCliente()).isEqualTo("Juliana");
         assertThat(pedidoEncontrado.getNumeroMesa()).isEqualTo(5);
-        assertThat(pedidoEncontrado.getStatus()).isEqualTo(StatusPedido.recebido);
+        assertThat(pedidoEncontrado.getStatus()).isEqualTo(Pedido.Status.recebido);
         assertThat(pedidoEncontrado.getItensPedido()).hasSize(2);
         assertThat(pedidoEncontrado.getSubtotal()).isEqualByComparingTo("75.30");
         assertThat(pedidoEncontrado.getTaxaServico()).isEqualByComparingTo("7.53");

@@ -1,8 +1,6 @@
-package com.burguer.restaurant.dominio.pedido;
+package com.burguer.restaurant.repository;
 
 import java.math.BigDecimal;
-
-import com.burguer.restaurant.dominio.produto.Produto;
 
 public class ItemPedido {
 

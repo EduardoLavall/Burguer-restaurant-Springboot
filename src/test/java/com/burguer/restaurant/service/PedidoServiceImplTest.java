@@ -18,18 +18,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.burguer.restaurant.dominio.pedido.ItemPedido;
-import com.burguer.restaurant.dominio.pedido.Pedido;
-import com.burguer.restaurant.dominio.pedido.StatusPedido;
-import com.burguer.restaurant.dominio.produto.CategoriaProduto;
-import com.burguer.restaurant.dominio.produto.Produto;
-import com.burguer.restaurant.dto.pedido.ItemPedidoRequisicao;
-import com.burguer.restaurant.dto.pedido.PedidoCheckoutRequisicao;
-import com.burguer.restaurant.dto.pedido.PedidoStatusRequisicao;
-import com.burguer.restaurant.exception.RegraNegocioException;
+import com.burguer.restaurant.dto.PedidoDto;
+import com.burguer.restaurant.repository.ItemPedido;
+import com.burguer.restaurant.repository.Pedido;
 import com.burguer.restaurant.repository.PedidoRepository;
+import com.burguer.restaurant.repository.Produto;
 import com.burguer.restaurant.repository.ProdutoRepository;
-import com.burguer.restaurant.service.impl.PedidoServiceImpl;
 
 @ExtendWith(MockitoExtension.class)
 class PedidoServiceImplTest {
@@ -47,7 +41,7 @@ class PedidoServiceImplTest {
                 "Burger Bacon",
                 "Pao brioche e bacon",
                 new BigDecimal("30.00"),
-                CategoriaProduto.comida,
+                Produto.Categoria.comida,
                 true,
                 null);
 
@@ -56,7 +50,7 @@ class PedidoServiceImplTest {
                 "Refrigerante",
                 "Lata 350ml",
                 new BigDecimal("8.00"),
-                CategoriaProduto.bebida,
+                Produto.Categoria.bebida,
                 true,
                 null);
 
@@ -74,19 +68,19 @@ class PedidoServiceImplTest {
                     pedido.getDataAtualizacao());
         });
 
-        PedidoService pedidoService = new PedidoServiceImpl(pedidoRepository, produtoRepository);
+        PedidoService pedidoService = new PedidoService(pedidoRepository, produtoRepository);
 
-        var resposta = pedidoService.criarCheckout(new PedidoCheckoutRequisicao(
+        var resposta = pedidoService.criarCheckout(new PedidoDto.CheckoutRequisicao(
                 "Marina",
                 12,
                 List.of(
-                        new ItemPedidoRequisicao(1L, 2),
-                        new ItemPedidoRequisicao(2L, 1))));
+                        new PedidoDto.ItemRequisicao(1L, 2),
+                        new PedidoDto.ItemRequisicao(2L, 1))));
 
         assertThat(resposta.id()).isEqualTo(99L);
         assertThat(resposta.nomeCliente()).isEqualTo("Marina");
         assertThat(resposta.numeroMesa()).isEqualTo(12);
-        assertThat(resposta.status()).isEqualTo(StatusPedido.recebido);
+        assertThat(resposta.status()).isEqualTo(PedidoDto.Status.recebido);
         assertThat(resposta.subtotal()).isEqualByComparingTo("68.00");
         assertThat(resposta.taxaServico()).isEqualByComparingTo("6.80");
         assertThat(resposta.valorTotal()).isEqualByComparingTo("74.80");
@@ -100,19 +94,19 @@ class PedidoServiceImplTest {
                 "Burger fora do menu",
                 "Indisponivel",
                 new BigDecimal("25.00"),
-                CategoriaProduto.comida,
+                Produto.Categoria.comida,
                 false,
                 null);
 
         when(produtoRepository.buscarPorId(1L)).thenReturn(Optional.of(produtoInativo));
 
-        PedidoService pedidoService = new PedidoServiceImpl(pedidoRepository, produtoRepository);
+        PedidoService pedidoService = new PedidoService(pedidoRepository, produtoRepository);
 
-        assertThatThrownBy(() -> pedidoService.criarCheckout(new PedidoCheckoutRequisicao(
+        assertThatThrownBy(() -> pedidoService.criarCheckout(new PedidoDto.CheckoutRequisicao(
                 "Lucas",
                 4,
-                List.of(new ItemPedidoRequisicao(1L, 1)))))
-                .isInstanceOf(RegraNegocioException.class)
+                List.of(new PedidoDto.ItemRequisicao(1L, 1)))))
+                .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Produto indisponivel");
     }
 
@@ -123,7 +117,7 @@ class PedidoServiceImplTest {
                 "Batata",
                 "Porcao media",
                 new BigDecimal("14.00"),
-                CategoriaProduto.acompanhamento,
+                Produto.Categoria.acompanhamento,
                 true,
                 null);
 
@@ -132,18 +126,18 @@ class PedidoServiceImplTest {
                 "Paulo",
                 8,
                 List.of(new ItemPedido(produto, 1)),
-                StatusPedido.recebido,
+                Pedido.Status.recebido,
                 OffsetDateTime.parse("2026-06-16T20:00:00Z"),
                 OffsetDateTime.parse("2026-06-16T20:00:00Z"));
 
         when(pedidoRepository.buscarPorId(20L)).thenReturn(Optional.of(pedido));
         when(pedidoRepository.salvar(any(Pedido.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        PedidoService pedidoService = new PedidoServiceImpl(pedidoRepository, produtoRepository);
+        PedidoService pedidoService = new PedidoService(pedidoRepository, produtoRepository);
 
-        var resposta = pedidoService.atualizarStatus(20L, new PedidoStatusRequisicao(StatusPedido.em_preparo));
+        var resposta = pedidoService.atualizarStatus(20L, new PedidoDto.AtualizacaoStatusRequisicao(PedidoDto.Status.em_preparo));
 
-        assertThat(resposta.status()).isEqualTo(StatusPedido.em_preparo);
+        assertThat(resposta.status()).isEqualTo(PedidoDto.Status.em_preparo);
         assertThat(resposta.dataAtualizacao()).isAfter(pedido.getDataAtualizacao());
         assertThat(resposta.valorTotal()).isEqualByComparingTo("15.40");
     }
@@ -155,7 +149,7 @@ class PedidoServiceImplTest {
                 "Milkshake",
                 "Chocolate",
                 new BigDecimal("18.00"),
-                CategoriaProduto.bebida,
+                Produto.Categoria.bebida,
                 true,
                 null);
 
@@ -164,13 +158,13 @@ class PedidoServiceImplTest {
                 "Fernanda",
                 2,
                 List.of(new ItemPedido(produto, 1)),
-                StatusPedido.cancelado,
+                Pedido.Status.cancelado,
                 OffsetDateTime.parse("2026-06-16T20:00:00Z"),
                 OffsetDateTime.parse("2026-06-16T20:05:00Z"));
 
         when(pedidoRepository.buscarPorId(30L)).thenReturn(Optional.of(pedido));
 
-        PedidoService pedidoService = new PedidoServiceImpl(pedidoRepository, produtoRepository);
+        PedidoService pedidoService = new PedidoService(pedidoRepository, produtoRepository);
 
         pedidoService.remover(30L);
 
@@ -184,7 +178,7 @@ class PedidoServiceImplTest {
                 "Burger duplo",
                 "Cheddar e cebola",
                 new BigDecimal("32.00"),
-                CategoriaProduto.comida,
+                Produto.Categoria.comida,
                 true,
                 null);
 
@@ -193,16 +187,16 @@ class PedidoServiceImplTest {
                 "Rafael",
                 9,
                 List.of(new ItemPedido(produto, 1)),
-                StatusPedido.em_preparo,
+                Pedido.Status.em_preparo,
                 OffsetDateTime.parse("2026-06-16T20:00:00Z"),
                 OffsetDateTime.parse("2026-06-16T20:07:00Z"));
 
         when(pedidoRepository.buscarPorId(31L)).thenReturn(Optional.of(pedido));
 
-        PedidoService pedidoService = new PedidoServiceImpl(pedidoRepository, produtoRepository);
+        PedidoService pedidoService = new PedidoService(pedidoRepository, produtoRepository);
 
         assertThatThrownBy(() -> pedidoService.remover(31L))
-                .isInstanceOf(RegraNegocioException.class)
+                .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("So e permitido excluir pedidos cancelados ou entregues.");
 
         verify(pedidoRepository, never()).removerPorId(31L);
